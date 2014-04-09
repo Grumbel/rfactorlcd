@@ -22,6 +22,8 @@ import math
 import socket
 import threading
 import glib
+import datetime
+import os
 
 import rfactorlcd
 
@@ -252,25 +254,47 @@ class App(object):
         self.fullscreen_active = False
         self.window = None
         self.black_on_white = False
+        self.quit = False
+        self.host = None
+        self.port = None
+        self.sock = None
+        self.cv = threading.Condition()
 
     def update_network(self):
-        host, port = "192.168.3.10", 2999
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
+        time_str = datetime.datetime.now().strftime("%Y-%m-%dT%H%M%S")
+        if not os.path.isdir("logs"):
+            os.mkdir("logs")
+        with open(os.path.join("logs", time_str + ".log"), "wt") as fout:
+            try:
+                print "Connecting to %s:%s" % (self.host, self.port)
+                self.sock.connect((self.host, self.port))
+
+                while not self.quit:
+                    self.sock.sendall("\n")
+                    received = self.sock.recv(1024)
+                    fout.write(received)
+
+                    try:
+                        self.new_state = rfactorlcd.rFactorState(received)
+                        glib.idle_add(self.update_state)
+                    except Exception as e:
+                        print "exception:", e
+            finally:
+                self.sock.close()
+
+    def update_state(self):
+        self.lcd.update_state(self.new_state)
+        self.new_state = None
+
+    def on_quit(self, *args):
+        self.quit = True
         try:
-            sock.connect((host, port))
-
-            while True:
-                sock.sendall("\n")
-                received = sock.recv(1024)
-
-                try:
-                    state = rfactorlcd.rFactorState(received)
-                    glib.idle_add(self.lcd.update_state, state)
-                except Exception as e:
-                    print("exception:", e)
-        finally:
-            sock.close()
+            self.sock.shutdown(socket.SHUT_WR)
+        except:
+            pass
+        gtk.main_quit()
 
     def on_toggle_fullscreen(self, *args):
         if self.fullscreen_active:
@@ -297,7 +321,7 @@ class App(object):
         accelgroup.connect_group(key,
                                  modifier,
                                  gtk.ACCEL_VISIBLE,
-                                 gtk.main_quit)
+                                 self.on_quit)
 
         key, modifier = gtk.accelerator_parse('f')
         accelgroup.connect_group(key,
@@ -326,14 +350,14 @@ class App(object):
 
     def main(self):
         parser = argparse.ArgumentParser(description='rFactor Remote LCD')
-        parser.add_argument('HOST', type=str, nargs=1,
+        parser.add_argument('HOST', type=str, nargs='?', default="127.0.0.1",
                             help='HOST to connect to')
         parser.add_argument('PORT', type=int, default=2999, nargs='?',
                             help='PORT to connect to')
         args = parser.parse_args()
 
-        args.HOST
-        args.PORT
+        self.host = args.HOST
+        self.port = args.PORT
 
         gtk.gdk.threads_init()
 
@@ -354,7 +378,7 @@ class App(object):
         accelgroup = self.create_accelgroup()
         self.window.add_accel_group(accelgroup)
 
-        self.window.connect("delete-event", gtk.main_quit)
+        self.window.connect("delete-event", self.on_quit)
         # window.connect("realize", realize_cb)
 
         threading.Thread(target=self.update_network).start()
