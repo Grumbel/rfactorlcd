@@ -53,7 +53,7 @@ def is_olpc():
         return False
 
 
-def create_accelgroup():
+def create_accelgroup(window):
     accelgroup = gtk.AccelGroup()
     key, modifier = gtk.accelerator_parse('Escape')
     accelgroup.connect_group(key,
@@ -84,12 +84,7 @@ class rFactorState(object):
         if data:
             cols = data.split(",")
             self.position = cols[0]
-            cols[1]
-            cols[2]
-            cols[3]
-            cols[4]
-            cols[5]
-            cols[6]
+            self.unknowns = cols[1:7]
             self.laptime = cols[8]
             self.speed = float(cols[9])
             self.gear = int(cols[10])
@@ -102,6 +97,7 @@ class rFactorState(object):
             if self.max_rpm == 0:
                 self.max_rpm = 1
         else:
+            self.unknowns = ["u1", "u2", "u3", "u4", "u5", "u6"]
             self.position = "17/17"
             self.speed = 100
             self.gear = 3
@@ -111,6 +107,15 @@ class rFactorState(object):
             self.fuel = 10.0
             self.rpm = 4000.0
             self.max_rpm = 6000.0
+
+
+class RPMWidget(object):
+
+    def __init__(self, x, y, w, h):
+        pass
+        
+    def draw(self, cr):
+        pass
 
 
 class rFactorLCDWidget(gtk.DrawingArea):
@@ -141,43 +146,118 @@ class rFactorLCDWidget(gtk.DrawingArea):
             
     def draw(self, cr, w, h, state):
         cr.set_antialias(cairo.ANTIALIAS_NONE)
-        cr.set_line_width(6.0)
+        cr.set_line_width(8.0)
         # cr.set_line_cap(cairo.LINE_CAP_ROUND)
 
-        self.draw_rpm_meter(cr, 700, 480, state.rpm, state.max_rpm)
-        self.draw_gear(cr, 500, 600, state.gear)
-        self.draw_speed(cr, 50, 600, state.speed)
-        self.draw_laptime(cr, 600, 800, state.laptime)
-        self.draw_position(cr, 100, 800, state.position)
+        cr.select_font_face("Incosolata", cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_NORMAL)
 
+        # self.draw_rpm_meter(cr, 700, 480, state.rpm, state.max_rpm)
+        self.draw_rpm_meter2(cr, 350, 350, state.rpm, state.max_rpm)
+        self.draw_gear(cr, 430, 630, state.gear)
+        self.draw_speed(cr, 650, 200, state.speed)
+        self.draw_laptime(cr, 50, 770, state.laptime)
+        self.draw_position(cr, 50, 870, state.position)
+        self.draw_temp(cr, 700, 300, state.oil_temp, state.water_temp, state.fuel)
+        self.draw_unknows(cr, 750, 550, state.unknowns)
+        
+    def draw_temp(self, cr, cx, cy, oil, water, fuel):
+        cr.set_source_rgb(0.0, 0.0, 0.0)
+        cr.set_font_size(75)      
+        
+        cr.move_to(cx, cy)        
+        cr.show_text("Oil:")
+        cr.move_to(cx+350, cy)
+        cr.show_text("%d" % oil)
+
+        cr.move_to(cx, cy + 80)
+        cr.show_text("Water:")
+        cr.move_to(cx+350, cy + 80)
+        cr.show_text("%d" % water)
+
+        cr.move_to(cx, cy + 160)
+        cr.show_text("Fuel:")
+        cr.move_to(cx+350, cy + 160)
+        cr.show_text("%d" % fuel)
+
+    def draw_unknows(self, cr, cx, cy, unknowns):
+        cr.set_source_rgb(0.0, 0.0, 0.0)
+        cr.set_font_size(50)
+        for i, v in enumerate(unknowns):
+            cr.move_to(cx, cy + 60 * i)
+            cr.show_text(v)
+        
     def draw_position(self, cr, cx, cy, position):
         cr.set_source_rgb(0.0, 0.0, 0.0)
-        cr.select_font_face("DejaVu Sans Mono", cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_NORMAL)
         cr.move_to(cx, cy)
         cr.set_font_size(100)
         cr.show_text(position)
 
     def draw_speed(self, cr, cx, cy, speed):
         cr.set_source_rgb(0.0, 0.0, 0.0)
-        cr.select_font_face("DejaVu Sans Mono", cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_NORMAL)
         cr.move_to(cx, cy)
-        cr.set_font_size(200)
-        cr.show_text("%d" % speed)
+        cr.set_font_size(150)
+        cr.show_text("%-3d" % speed)
+        cr.set_font_size(75)
+        cr.show_text("km/h")
 
     def draw_laptime(self, cr, cx, cy, laptime):
         cr.set_source_rgb(0.0, 0.0, 0.0)
-        cr.select_font_face("DejaVu Sans Mono", cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_NORMAL)
         cr.move_to(cx, cy)
         cr.set_font_size(100)
         cr.show_text(laptime)
 
     def draw_gear(self, cr, cx, cy, gear):
         cr.set_source_rgb(0.0, 0.0, 0.0)
-        cr.select_font_face("DejaVu Sans Mono", cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_NORMAL)
         cr.move_to(cx, cy)
-        cr.set_font_size(400)
-        cr.show_text("%d" % gear)
-        print(gear)
+        cr.set_font_size(300)
+        if gear == 0:
+            cr.show_text("N")
+        elif gear == -1:
+            cr.show_text("R")
+        else:
+            cr.show_text(str(gear))
+
+    def draw_rpm_meter2(self, cr, cx, cy, rpm, max_rpm):
+        inner_r = 250.0
+        outer_r = 300.0
+
+        cr.save()
+        cr.translate(cx, cy)
+        cr.set_source_rgb(0, 0, 0)
+
+        start = 90
+        end = 360
+        for deg in range(start, end+1, 5):
+            rad = math.radians(deg)
+            x = math.sin(rad)
+            y = math.cos(rad)
+            
+            cr.move_to(x * inner_r,
+                       y * inner_r)
+            cr.line_to(x * outer_r,
+                       y * outer_r)
+        cr.stroke()
+
+        cr.save()
+        rpm_p = rpm / max_rpm
+
+        cr.rotate(end + (end - start - 1) * (1.0 - rpm_p))
+        cr.move_to(-50, 0)
+        cr.line_to(0, 50)
+        cr.line_to(outer_r * 1.05, 2)
+        cr.line_to(outer_r * 1.05, -2)
+        cr.line_to(0, -50)
+        cr.close_path()
+        
+        cr.set_source_rgb(1.0, 0, 0)
+        cr.fill_preserve()
+
+        cr.set_source_rgb(0, 0, 0)
+        cr.stroke()
+        cr.restore()
+        
+        cr.restore()
+        print("--")
 
     def draw_rpm_meter(self, cr, cx, cy, rpm, max_rpm):
         rpm_p = rpm / max_rpm
@@ -196,8 +276,10 @@ class rFactorLCDWidget(gtk.DrawingArea):
         cr.save()
         cr.translate(cx, cy)
 
-        for deg in range(150, 260, 1):
-            p = 1.0 - (float(deg - 150) / (260 - 150))
+        start = 150
+        end = 260
+        for deg in range(start, end, 2):
+            p = 1.0 - (float(deg - start) / (end - start - 1))
 
             if p > rpm_p:
                 cr.set_source_rgb(0.85, 0.85, 0.85)
@@ -267,7 +349,7 @@ def main():
     if is_olpc():
         window.fullscreen()
         
-    accelgroup = create_accelgroup()   
+    accelgroup = create_accelgroup(window)
     window.add_accel_group(accelgroup)
 
     window.connect("delete-event", gtk.main_quit)
