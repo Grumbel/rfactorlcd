@@ -19,6 +19,7 @@
 
 import unittest
 import rfactorlcd
+import rfactorlcd.state
 
 
 class rFactorLCDTestCase(unittest.TestCase):
@@ -31,6 +32,14 @@ class rFactorLCDTestCase(unittest.TestCase):
 
     def test_loading_aspect(self):
         pass
+
+    def test_rfactorState(self):
+        state1 = rfactorlcd.state.rFactorState()
+        data = state1.to_vracingDisplayPRO()
+        state2 = rfactorlcd.state.rFactorState(data)
+        self.assertEqual(state1.to_vracingDisplayPRO(),
+                         state2.to_vracingDisplayPRO())
+
 
 if __name__ == '__main__':
     unittest.main()

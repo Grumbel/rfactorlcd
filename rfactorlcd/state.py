@@ -17,32 +17,45 @@
 
 class rFactorState(object):
 
-    def __init__(self, data=None):
-        if data:
-            cols = data.split(",")
-            self.position = cols[0]
-            self.unknowns = cols[1:7]
-            self.laptime = cols[8]
-            self.speed = float(cols[9])
-            self.gear = int(cols[10])
-            self.fuel = float(cols[11])
-            self.oil_temp = float(cols[12])
-            self.water_temp = float(cols[13])
-            self.rpm = float(cols[14])
-            self.max_rpm = float(cols[15])
-            if self.max_rpm == 0:
-                self.max_rpm = 1
-        else:
-            self.unknowns = ["u1", "u2", "u3", "u4", "u5", "u6"]
-            self.position = "17/17"
-            self.speed = 100
-            self.gear = 3
-            self.laptime = "2:27.36"
-            self.oil_temp = 30.5
-            self.water_temp = 29.5
-            self.fuel = 10.0
-            self.rpm = 4000.0
-            self.max_rpm = 6000.0
+    def __init__(self, data="15/17,1,0.107,1.438,1.658,21.598,29.738,31.855,1:23.190,0.0,0,30.0,63.4,26.9,0.0,0.0"):
+        self.data = data
+
+        cols = data.split(",")
+        self.position = cols[0]
+        self.unknowns = cols[1:5]
+        self.sector = cols[5:8]
+        self.laptime = cols[8]
+        self.speed = float(cols[9])
+        self.gear = int(cols[10])
+        self.fuel = float(cols[11])
+        self.oil_temp = float(cols[12])
+        self.water_temp = float(cols[13])
+        self.rpm = float(cols[14])
+        self.max_rpm = float(cols[15])
+
+    def to_vracingDisplayPRO(self):
+        result = "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s" % (
+            self.position,
+            self.unknowns[0],
+            self.unknowns[1],
+            self.unknowns[2],
+            self.unknowns[3],
+            self.sector[0],
+            self.sector[1],
+            self.sector[2],
+            self.laptime,
+            self.speed,
+            self.gear,
+            self.fuel,
+            self.oil_temp,
+            self.water_temp,
+            self.rpm,
+            self.max_rpm)
+        
+        # print "IN: ", self.data
+        # print "OUT: ", result
+
+        return result
 
 
 # EOF #

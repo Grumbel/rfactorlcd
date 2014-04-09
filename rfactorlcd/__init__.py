@@ -18,8 +18,9 @@
 from .app import App
 from .style import Style
 from .state import rFactorState
+from .lcd_widget import LCDWidget
 
-__all__ = ["App", "Style", "rFactorState"]
+__all__ = ["App", "Style", "rFactorState", "LCDWidget"]
 
 
 # EOF #
