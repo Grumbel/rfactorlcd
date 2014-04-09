@@ -93,7 +93,6 @@ class rFactorState(object):
             self.water_temp = float(cols[13])
             self.rpm = float(cols[14])
             self.max_rpm = float(cols[15])
-            print(cols)
             if self.max_rpm == 0:
                 self.max_rpm = 1
         else:
@@ -166,18 +165,18 @@ class rFactorLCDWidget(gtk.DrawingArea):
         
         cr.move_to(cx, cy)        
         cr.show_text("Oil:")
-        cr.move_to(cx+350, cy)
-        cr.show_text("%d" % oil)
+        cr.move_to(cx+300, cy)
+        cr.show_text("%5.1f" % oil)
 
         cr.move_to(cx, cy + 80)
         cr.show_text("Water:")
-        cr.move_to(cx+350, cy + 80)
-        cr.show_text("%d" % water)
+        cr.move_to(cx+300, cy + 80)
+        cr.show_text("%5.1f" % water)
 
         cr.move_to(cx, cy + 160)
         cr.show_text("Fuel:")
-        cr.move_to(cx+350, cy + 160)
-        cr.show_text("%d" % fuel)
+        cr.move_to(cx+300, cy + 160)
+        cr.show_text("%5.1f" % fuel)
 
     def draw_unknows(self, cr, cx, cy, unknowns):
         cr.set_source_rgb(0.0, 0.0, 0.0)
@@ -196,7 +195,7 @@ class rFactorLCDWidget(gtk.DrawingArea):
         cr.set_source_rgb(0.0, 0.0, 0.0)
         cr.move_to(cx, cy)
         cr.set_font_size(150)
-        cr.show_text("%-3d" % speed)
+        cr.show_text("%3d" % speed)
         cr.set_font_size(75)
         cr.show_text("km/h")
 
@@ -241,7 +240,7 @@ class rFactorLCDWidget(gtk.DrawingArea):
         cr.save()
         rpm_p = rpm / max_rpm
 
-        cr.rotate(end + (end - start - 1) * (1.0 - rpm_p))
+        cr.rotate(math.radians(start + (end - start - 1) * (rpm_p)))
         cr.move_to(-50, 0)
         cr.line_to(0, 50)
         cr.line_to(outer_r * 1.05, 2)
@@ -257,7 +256,6 @@ class rFactorLCDWidget(gtk.DrawingArea):
         cr.restore()
         
         cr.restore()
-        print("--")
 
     def draw_rpm_meter(self, cr, cx, cy, rpm, max_rpm):
         rpm_p = rpm / max_rpm
@@ -303,7 +301,7 @@ class rFactorLCDWidget(gtk.DrawingArea):
 def update_network():
     global lcd
 
-    host, port = "192.168.3.10", 2302
+    host, port = "192.168.3.10", 2999
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
     try:
