@@ -33,7 +33,65 @@ class LCDWidget(gtk.DrawingArea):
         rpm_dashlet = rfactorlcd.RPMDashlet(self, self.lcd_style)
         rpm_dashlet.set_geometry(100, 100, 400, 400)
 
-        self.dashlets = [rpm_dashlet]
+        temp_dashlet = rfactorlcd.TempDashlet(self, self.lcd_style)
+        temp_dashlet.set_geometry(500, 100, 400, 400)
+
+        speed_dashlet = rfactorlcd.SpeedDashlet(self, self.lcd_style)
+        speed_dashlet.set_geometry(500, 150, 200, 100)
+
+        self.dashlets = [rpm_dashlet, speed_dashlet, temp_dashlet]
+
+        self.active_dashlet = None
+        self.drag_dashlet = None
+        self.drag_start = None
+
+        #self.set_events(gtk.MOTION_NOTIFY)
+
+        self.set_events(gtk.gdk.EXPOSURE_MASK
+                        | gtk.gdk.LEAVE_NOTIFY_MASK
+                        | gtk.gdk.BUTTON_PRESS_MASK
+                        | gtk.gdk.BUTTON_RELEASE_MASK
+                        | gtk.gdk.POINTER_MOTION_MASK
+                        | gtk.gdk.POINTER_MOTION_HINT_MASK)
+
+
+        self.connect("motion_notify_event", self.on_motion_notify)
+        self.connect("button_press_event", self.on_button_press)
+        self.connect("button_release_event", self.on_button_release)
+
+    def on_button_press(self, widget, event):
+        print "press", event.x, event.y, event.button
+        if event.button == 1:
+            self.drag_dashlet = self.active_dashlet
+            self.drag_dashlet_origin = (self.drag_dashlet.x, self.drag_dashlet.y)
+            self.drag_start = (event.x, event.y)
+
+    def on_button_release(self, widget, event):
+        print "release", event.x, event.y, event.button
+        if event.button == 1:
+            self.drag_dashlet = None
+
+    def on_motion_notify(self, widget, event):
+        if self.drag_dashlet is not None:
+            x = event.x - self.drag_start[0]
+            y = event.y - self.drag_start[1]
+
+            self.drag_dashlet.x = self.drag_dashlet_origin[0] + x
+            self.drag_dashlet.y = self.drag_dashlet_origin[1] + y
+
+            self.queue_draw()
+        else:
+            active_dashlet = None
+            for dashlet in self.dashlets:
+                if dashlet.x <= event.x < dashlet.x2 and \
+                   dashlet.y <= event.y < dashlet.y2:
+                    active_dashlet = dashlet
+                    break
+
+            if active_dashlet != self.active_dashlet:
+                self.active_dashlet = active_dashlet
+                print "Dashlet:", self.active_dashlet
+                self.queue_draw()
 
     def set_lcd_style(self, style):
         self.lcd_style = style
@@ -57,8 +115,15 @@ class LCDWidget(gtk.DrawingArea):
 
             for dashlet in self.dashlets:
                 cr.save()
+                cr.translate(dashlet.x, dashlet.y)
                 dashlet.draw(cr)
                 cr.restore()
+
+                if dashlet == self.active_dashlet:
+                    cr.set_source_rgb(*self.lcd_style.highlight_color)
+                    cr.rectangle(dashlet.x, dashlet.y,
+                                 dashlet.w, dashlet.h)
+                    cr.stroke()
 
     def update_state(self, state):
         self.rf_state = state
@@ -80,31 +145,10 @@ class LCDWidget(gtk.DrawingArea):
         # print(font_face)
 
         # self.draw_rpm_meter(cr, 700, 480, state.rpm, state.max_rpm)
-        self.draw_speed(cr, 650, 200, state.speed)
         self.draw_laptime(cr, 50, 770, state.laptime)
         self.draw_position(cr, 50, 870, state.position)
-        self.draw_temp(cr, 700, 300, state.oil_temp, state.water_temp, state.fuel)
         self.draw_unknows(cr, 750, 550, state.unknowns)
         self.draw_sectors(cr, 750, 750, state.sector)
-
-    def draw_temp(self, cr, cx, cy, oil, water, fuel):
-        cr.set_source_rgb(*self.lcd_style.foreground_color)
-        cr.set_font_size(60)
-
-        cr.move_to(cx, cy)
-        cr.show_text("Oil:")
-        cr.move_to(cx+250, cy)
-        cr.show_text("%5.1f" % oil)
-
-        cr.move_to(cx, cy + 80)
-        cr.show_text("Water:")
-        cr.move_to(cx+250, cy + 80)
-        cr.show_text("%5.1f" % water)
-
-        cr.move_to(cx, cy + 160)
-        cr.show_text("Fuel:")
-        cr.move_to(cx+250, cy + 160)
-        cr.show_text("%5.1f" % fuel)
 
     def draw_sectors(self, cr, cx, cy, sector):
         for i, v in enumerate(sector):
@@ -125,14 +169,6 @@ class LCDWidget(gtk.DrawingArea):
         cr.move_to(cx, cy)
         cr.set_font_size(75)
         cr.show_text("POS: %s" % position)
-
-    def draw_speed(self, cr, cx, cy, speed):
-        cr.set_source_rgb(*self.lcd_style.foreground_color)
-        cr.move_to(cx, cy)
-        cr.set_font_size(180)
-        cr.show_text("%3d" % speed)
-        cr.set_font_size(90)
-        cr.show_text("km/h")
 
     def draw_laptime(self, cr, cx, cy, laptime):
         cr.set_source_rgb(*self.lcd_style.foreground_color)

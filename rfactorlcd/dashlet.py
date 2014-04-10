@@ -37,6 +37,14 @@ class Dashlet(object):
     def cy(self):
         return self.y + self.h / 2
 
+    @property
+    def x2(self):
+        return self.x + self.w
+
+    @property
+    def y2(self):
+        return self.y + self.h
+
     def queue_draw(self):
         self.needs_redraw = True
 
@@ -52,6 +60,65 @@ class Dashlet(object):
 
     def draw(self, cr):
         raise NotImplementedError()
+
+
+class SpeedDashlet(Dashlet):
+
+    def __init__(self, *args):
+        super(SpeedDashlet, self).__init__(*args)
+        self.speed = 0
+
+    def update_state(self, state):
+        if self.speed != state.speed:
+            self.speed = state.speed
+            self.queue_draw()
+
+    def draw(self, cr):
+        cr.set_source_rgb(*self.lcd_style.foreground_color)
+        cr.move_to(self.w/2, self.h/2)
+        cr.set_font_size(180)
+        cr.show_text("%3d" % self.speed)
+        cr.set_font_size(90)
+        cr.show_text("km/h")
+
+
+class TempDashlet(Dashlet):
+
+    def __init__(self, *args):
+        super(TempDashlet, self).__init__(*args)
+        self.oil_temp = 0
+        self.water_temp = 0
+        self.fuel = 0
+
+    def update_state(self, state):
+        if self.oil_temp != state.oil_temp or \
+           self.water_temp != state.water_temp or \
+           self.fuel != state.fuel:
+
+            self.oil_temp = state.oil_temp
+            self.water_temp = state.water_temp
+            self.fuel = state.fuel
+
+            self.queue_draw()
+
+    def draw(self, cr):
+        cr.set_source_rgb(*self.lcd_style.foreground_color)
+        cr.set_font_size(60)
+
+        cr.move_to(0, 0)
+        cr.show_text("Oil:")
+        cr.move_to(250, 0)
+        cr.show_text("%5.1f" % self.oil_temp)
+
+        cr.move_to(0, 80)
+        cr.show_text("Water:")
+        cr.move_to(250, 80)
+        cr.show_text("%5.1f" % self.water_temp)
+
+        cr.move_to(0, 160)
+        cr.show_text("Fuel:")
+        cr.move_to(250, 160)
+        cr.show_text("%5.1f" % self.fuel)
 
 
 class RPMDashlet(Dashlet):
@@ -87,7 +154,7 @@ class RPMDashlet(Dashlet):
 
     def draw(self, cr):
         cr.save()
-        cr.translate(self.cx, self.cy)
+        cr.translate(self.w/2, self.h/2)
         cr.set_source_rgb(*self.lcd_style.foreground_color)
 
         # display the rpm/max_rpm
@@ -144,8 +211,8 @@ class RPMDashlet(Dashlet):
 
     def draw_gear(self, cr):
         cr.set_source_rgb(*self.lcd_style.foreground_color)
-        cr.move_to(self.cx + self.outer_r * 0.25,
-                   self.cy + self.outer_r * 0.9)
+        cr.move_to(self.w/2 + self.outer_r * 0.25,
+                   self.h/2 + self.outer_r * 0.9)
         cr.set_font_size(self.outer_r)
         if self.gear == 0:
             cr.show_text("N")
