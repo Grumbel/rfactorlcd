@@ -19,10 +19,13 @@ from .app import App
 from .style import Style
 from .state import rFactorState
 from .lcd_widget import LCDWidget
-from .dashlet import Dashlet, RPMDashlet, TempDashlet, SpeedDashlet
+from .dashlet import Dashlet, RPMDashlet, TempDashlet, SpeedDashlet, \
+    SectorDashlet, LaptimeDashlet, PositionDashlet, RPM2Dashlet
 
-__all__ = ["App", "Style", "rFactorState", "LCDWidget", 
-           "Dashlet", "RPMDashlet", "TempDashlet", "SpeedDashlet"]
+__all__ = ["App", "Style", "rFactorState", "LCDWidget",
+           "Dashlet", "RPMDashlet", "TempDashlet", "SpeedDashlet",
+           "SectorDashlet", "LaptimeDashlet", "PositionDashlet",
+           "RPM2Dashlet"]
 
 
 # EOF #

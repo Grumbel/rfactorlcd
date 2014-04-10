@@ -22,7 +22,8 @@ class rFactorState(object):
 
         cols = data.split(",")
         self.position = cols[0]
-        self.unknowns = cols[1:5]
+        self.running = int(cols[1])
+        self.unknowns = cols[2:5]
         self.sector = cols[5:8]
         self.laptime = cols[8]
         self.speed = float(cols[9])
@@ -36,10 +37,10 @@ class rFactorState(object):
     def to_vracingDisplayPRO(self):
         result = "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s" % (
             self.position,
+            self.running,
             self.unknowns[0],
             self.unknowns[1],
             self.unknowns[2],
-            self.unknowns[3],
             self.sector[0],
             self.sector[1],
             self.sector[2],

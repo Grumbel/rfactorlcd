@@ -62,6 +62,69 @@ class Dashlet(object):
         raise NotImplementedError()
 
 
+class PositionDashlet(Dashlet):
+
+    def __init__(self, *args):
+        super(PositionDashlet, self).__init__(*args)
+        self.position = "0/0"
+
+    def update_state(self, state):
+        if self.position != state.position:
+            self.position = state.position
+
+    def draw(self, cr):
+        cr.set_source_rgb(*self.lcd_style.foreground_color)
+        cr.move_to(0, self.h)
+        cr.set_font_size(self.h)
+        cr.show_text("POS: %s" % self.position)
+
+
+class LaptimeDashlet(Dashlet):
+
+    def __init__(self, *args):
+        super(LaptimeDashlet, self).__init__(*args)
+        self.laptime = "0:00"
+
+    def update_state(self, state):
+        if self.laptime != state.laptime:
+            self.laptime = state.laptime
+
+    def draw(self, cr):
+        cr.set_source_rgb(*self.lcd_style.foreground_color)
+        cr.move_to(0, self.h)
+        cr.set_font_size(self.h)
+        cr.show_text("LAP: %s" % self.laptime)
+
+
+class SectorDashlet(Dashlet):
+
+    def __init__(self, *args):
+        super(SectorDashlet, self).__init__(*args)
+        self.sector = []
+        self.unknowns = []
+
+    def update_state(self, state):
+        if self.sector != state.sector or \
+           self.unknowns != state.unknowns:
+            self.sector = state.sector
+            self.unknowns = state.unknowns
+            self.queue_draw()
+
+    def draw(self, cr):
+        cr.set_source_rgb(*self.lcd_style.foreground_color)
+        cr.set_font_size(45)
+
+        for i, v in enumerate(self.sector):
+            cr.move_to(0, 45 * i + 45)
+            cr.show_text("S%d:" % (i + 1))
+            cr.move_to(100, 45 * i + 45)
+            cr.show_text("%-6s" % v)
+
+        for i, v in enumerate(self.unknowns):
+            cr.move_to(0, 45 * i + 150 + 45)
+            cr.show_text("%6s" % v)
+
+
 class SpeedDashlet(Dashlet):
 
     def __init__(self, *args):
@@ -75,10 +138,10 @@ class SpeedDashlet(Dashlet):
 
     def draw(self, cr):
         cr.set_source_rgb(*self.lcd_style.foreground_color)
-        cr.move_to(self.w/2, self.h/2)
-        cr.set_font_size(180)
+        cr.move_to(0, self.h)
+        cr.set_font_size(self.h)
         cr.show_text("%3d" % self.speed)
-        cr.set_font_size(90)
+        cr.set_font_size(self.h/2)
         cr.show_text("km/h")
 
 
@@ -105,20 +168,78 @@ class TempDashlet(Dashlet):
         cr.set_source_rgb(*self.lcd_style.foreground_color)
         cr.set_font_size(60)
 
-        cr.move_to(0, 0)
+        cr.move_to(0, 80)
         cr.show_text("Oil:")
-        cr.move_to(250, 0)
+        cr.move_to(250, 80)
         cr.show_text("%5.1f" % self.oil_temp)
 
-        cr.move_to(0, 80)
+        cr.move_to(0, 160)
         cr.show_text("Water:")
-        cr.move_to(250, 80)
+        cr.move_to(250, 160)
         cr.show_text("%5.1f" % self.water_temp)
 
-        cr.move_to(0, 160)
+        cr.move_to(0, 240)
         cr.show_text("Fuel:")
-        cr.move_to(250, 160)
+        cr.move_to(250, 240)
         cr.show_text("%5.1f" % self.fuel)
+
+
+class RPM2Dashlet(Dashlet):
+
+    def __init__(self, *args):
+        super(RPM2Dashlet, self).__init__(*args)
+        self.rpm = 0
+        self.max_rpm = 0
+
+    def update_state(self, state):
+        if self.rpm != state.rpm or \
+           self.max_rpm != state.max_rpm:
+            self.rpm = state.rpm
+            self.max_rpm = state.max_rpm
+            self.queue_draw()
+
+    def draw(self, cr):
+        if self.max_rpm == 0:
+            rpm_p = 0.0
+        else:
+            rpm_p = self.rpm / self.max_rpm
+
+        inner_r = 600.0
+        outer_r = 700.0
+
+        inner_squish = 0.4
+        outer_squish = 0.6
+
+        inner_offset = 50
+        inner_trail = 0.0
+
+        inner_ramp = 0.98
+
+        cr.save()
+        cr.translate(self.w/2, self.h/2)
+
+        start = 150
+        end = 260
+        for deg in range(start, end, 2):
+            p = 1.0 - (float(deg - start) / (end - start - 1))
+
+            if p > rpm_p:
+                cr.set_source_rgb(0.85, 0.85, 0.85)
+            else:
+                cr.set_source_rgb(0.0, 0.0, 0.0)
+
+            rad = math.radians(deg)
+            x = math.sin(rad)
+            y = math.cos(rad)
+
+            ix = math.sin(inner_ramp * rad - inner_trail)
+            iy = math.cos(inner_ramp * rad - inner_trail)
+
+            cr.move_to(ix * inner_r, iy * inner_r * inner_squish)
+            cr.line_to(x * outer_r + inner_offset, y * outer_r * outer_squish)
+            cr.stroke()
+
+        cr.restore()
 
 
 class RPMDashlet(Dashlet):
@@ -128,6 +249,9 @@ class RPMDashlet(Dashlet):
 
         self.inner_r = 250.0
         self.outer_r = 300.0
+
+        self.start = 90
+        self.end = 360
 
         self.rpm = 0
         self.max_rpm = 5000
@@ -164,11 +288,33 @@ class RPMDashlet(Dashlet):
         cr.move_to(-self.outer_r/2, -self.outer_r/3)
         cr.show_text("%6d" % self.max_rpm)
 
-        # draw the background pattern
+        self.draw_background(cr)
+        self.draw_needle(cr)
+        cr.restore()
+
+        self.draw_gear(cr)
+
+    def draw_needle(self, cr):
+        if self.max_rpm != 0:
+            cr.save()
+            rpm_p = self.rpm / self.max_rpm
+
+            cr.rotate(math.radians(self.start + (self.end - self.start - 1) * (rpm_p)))
+            cr.arc(0, 0, 20, math.pi/2, math.pi + math.pi/2)
+            cr.line_to(self.outer_r * 1.05, -2)
+            cr.line_to(self.outer_r * 1.05, 2)
+            cr.close_path()
+
+            cr.set_source_rgb(*self.lcd_style.highlight_color)
+            cr.fill_preserve()
+
+            cr.set_source_rgb(*self.lcd_style.highlight_dim_color)
+            cr.stroke()
+            cr.restore()
+
+    def draw_background(self, cr):
         cr.move_to(0, 0)
-        start = 90
-        end = 360
-        for deg in range(start, end+1, 10):  # int((end - start) / int((max_rpm + 500)/1000))):
+        for deg in range(self.start, self.end + 1, 10):  # int((end - start) / int((max_rpm + 500)/1000))):
             rad = math.radians(deg)
             if False:
                 x = math.sin(rad)
@@ -186,28 +332,6 @@ class RPMDashlet(Dashlet):
                 cr.close_path()
                 cr.set_source_rgb(*self.lcd_style.shadow_color)
                 cr.fill()
-        cr.save()
-
-        # draw the needle
-        if self.max_rpm != 0:
-            rpm_p = self.rpm / self.max_rpm
-
-            cr.rotate(math.radians(start + (end - start - 1) * (rpm_p)))
-            cr.arc(0, 0, 20, math.pi/2, math.pi + math.pi/2)
-            cr.line_to(self.outer_r * 1.05, -2)
-            cr.line_to(self.outer_r * 1.05, 2)
-            cr.close_path()
-
-            cr.set_source_rgb(*self.lcd_style.highlight_color)
-            cr.fill_preserve()
-
-            cr.set_source_rgb(*self.lcd_style.highlight_dim_color)
-            cr.stroke()
-            cr.restore()
-
-        cr.restore()
-
-        self.draw_gear(cr)
 
     def draw_gear(self, cr):
         cr.set_source_rgb(*self.lcd_style.foreground_color)
