@@ -30,6 +30,17 @@ class LCDWidget(gtk.DrawingArea):
         self.rf_state = rfactorlcd.rFactorState()
         self.lcd_style = rfactorlcd.Style.white_on_black()
 
+        rpm_dashlet = rfactorlcd.RPMDashlet(self, self.lcd_style)
+        rpm_dashlet.set_geometry(100, 100, 400, 400)
+
+        self.dashlets = [rpm_dashlet]
+
+    def set_lcd_style(self, style):
+        self.lcd_style = style
+
+        for dashlet in self.dashlets:
+            dashlet.lcd_style = self.lcd_style
+
     def on_expose_event(self, widget, event):
         if self.window:
             cr = self.window.cairo_create()
@@ -44,8 +55,17 @@ class LCDWidget(gtk.DrawingArea):
             cr.paint()
             self.draw(cr, 1200, 900, self.rf_state)
 
+            for dashlet in self.dashlets:
+                cr.save()
+                dashlet.draw(cr)
+                cr.restore()
+
     def update_state(self, state):
         self.rf_state = state
+
+        for dashlet in self.dashlets:
+            dashlet.update_state(state)
+
         self.queue_draw()
 
     def draw(self, cr, w, h, state):
@@ -56,10 +76,10 @@ class LCDWidget(gtk.DrawingArea):
         cr.select_font_face(self.lcd_style.font,
                             self.lcd_style.font_slant,
                             self.lcd_style.font_weight)
+        # font_face = cr.get_font_face()
+        # print(font_face)
 
         # self.draw_rpm_meter(cr, 700, 480, state.rpm, state.max_rpm)
-        self.draw_rpm_meter2(cr, 350, 350, state.rpm, state.max_rpm)
-        self.draw_gear(cr, 430, 630, state.gear)
         self.draw_speed(cr, 650, 200, state.speed)
         self.draw_laptime(cr, 50, 770, state.laptime)
         self.draw_position(cr, 50, 870, state.position)
@@ -89,7 +109,9 @@ class LCDWidget(gtk.DrawingArea):
     def draw_sectors(self, cr, cx, cy, sector):
         for i, v in enumerate(sector):
             cr.move_to(cx, cy + 45 * i)
-            cr.show_text("S%d: %6s" % (i+1, v))
+            cr.show_text("S%d:" % (i + 1))
+            cr.move_to(cx + 100, cy + 45 * i)
+            cr.show_text("%-6s" % v)
 
     def draw_unknows(self, cr, cx, cy, unknowns):
         cr.set_source_rgb(*self.lcd_style.foreground_color)
@@ -101,8 +123,8 @@ class LCDWidget(gtk.DrawingArea):
     def draw_position(self, cr, cx, cy, position):
         cr.set_source_rgb(*self.lcd_style.foreground_color)
         cr.move_to(cx, cy)
-        cr.set_font_size(100)
-        cr.show_text(position)
+        cr.set_font_size(75)
+        cr.show_text("POS: %s" % position)
 
     def draw_speed(self, cr, cx, cy, speed):
         cr.set_source_rgb(*self.lcd_style.foreground_color)
@@ -115,67 +137,8 @@ class LCDWidget(gtk.DrawingArea):
     def draw_laptime(self, cr, cx, cy, laptime):
         cr.set_source_rgb(*self.lcd_style.foreground_color)
         cr.move_to(cx, cy)
-        cr.set_font_size(100)
-        cr.show_text(laptime)
-
-    def draw_gear(self, cr, cx, cy, gear):
-        cr.set_source_rgb(*self.lcd_style.foreground_color)
-        cr.move_to(cx, cy)
-        cr.set_font_size(300)
-        if gear == 0:
-            cr.show_text("N")
-        elif gear == -1:
-            cr.show_text("R")
-        else:
-            cr.show_text(str(gear))
-
-    def draw_rpm_meter2(self, cr, cx, cy, rpm, max_rpm):
-        if max_rpm == 0:
-            max_rpm = 5000
-
-        inner_r = 250.0
-        outer_r = 300.0
-
-        cr.save()
-        cr.translate(cx, cy)
-        cr.set_source_rgb(*self.lcd_style.foreground_color)
-
-        start = 90
-        end = 360
-        for deg in range(start, end+1, 10): # int((end - start) / int((max_rpm + 500)/1000))):
-            rad = math.radians(deg)
-            x = math.sin(rad)
-            y = math.cos(rad)
-
-            cr.move_to(x * inner_r,
-                       y * inner_r)
-            cr.line_to(x * outer_r,
-                       y * outer_r)
-        cr.stroke()
-
-        cr.save()
-
-        if max_rpm == 0:
-            rpm_p = 0.0
-        else:
-            rpm_p = rpm / max_rpm
-
-        cr.rotate(math.radians(start + (end - start - 1) * (rpm_p)))
-        cr.move_to(-30, 0)
-        cr.line_to(0, 30)
-        cr.line_to(outer_r * 1.05, 2)
-        cr.line_to(outer_r * 1.05, -2)
-        cr.line_to(0, -30)
-        cr.close_path()
-
-        cr.set_source_rgb(*self.lcd_style.highlight_color)
-        cr.fill_preserve()
-
-        cr.set_source_rgb(*self.lcd_style.highlight_dim_color)
-        cr.stroke()
-        cr.restore()
-
-        cr.restore()
+        cr.set_font_size(75)
+        cr.show_text("LAP: %s" % laptime)
 
     def draw_rpm_meter(self, cr, cx, cy, rpm, max_rpm):
         if max_rpm == 0:

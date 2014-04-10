@@ -117,11 +117,11 @@ class App(object):
     def on_toggle_style(self, *args):
         if self.black_on_white:
             self.black_on_white = False
-            self.lcd.lcd_style = rfactorlcd.Style.white_on_black()
+            self.lcd.set_lcd_style(rfactorlcd.Style.white_on_black())
             self.lcd.queue_draw()
         else:
             self.black_on_white = True
-            self.lcd.lcd_style = rfactorlcd.Style.black_on_white()
+            self.lcd.set_lcd_style(rfactorlcd.Style.black_on_white())
             self.lcd.queue_draw()
 
     def create_accelgroup(self):

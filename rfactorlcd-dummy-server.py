@@ -19,7 +19,6 @@
 
 import SocketServer
 import threading
-import time
 
 
 class MyTCPHandler(SocketServer.BaseRequestHandler):

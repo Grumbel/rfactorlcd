@@ -51,7 +51,7 @@ class rFactorState(object):
             self.water_temp,
             self.rpm,
             self.max_rpm)
-        
+
         # print "IN: ", self.data
         # print "OUT: ", result
 
