@@ -1,5 +1,6 @@
+*.os
 *.pyc
 *~
 /.sconsign.dblite
 /logs/
-
+/rfactorlcdPlugin.dll

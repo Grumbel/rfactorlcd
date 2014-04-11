@@ -14,9 +14,18 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+plugin_env = Environment(CXX = "i586-mingw32msvc-c++",
+                         AR = "i586-mingw32msvc-ar",
+                         RANLIB = "i586-mingw32msvc-ranlib",
+                         SHLIBPREFIX="",
+                         SHLIBSUFFIX=".dll",
+                         CPPPATH="external/InternalsPlugins/Include/")
+rfactorlcdPlugin = plugin_env.SharedLibrary("rfactorlcdPlugin", ["src/rfactorlcd.cpp"])
+Default(rfactorlcdPlugin)
 
 sources = Glob("*.py", strings=True) + \
-          Glob("rfactorlcd/*.py", strings=True)
+          Glob("rfactorlcd/*.py", strings=True) + \
+          Glob("rfactorlcd/dashlets/*.py", strings=True)
 
 flake_check = Command("flake.results", sources,
                       "python -m flake8.run --max-line-length=120 $SOURCES")
@@ -28,7 +37,7 @@ for i in sources:
 
 Default(flake_check)
 
-Alias("all", [flake_check, "pylint", "test"])
+Alias("all", [flake_check, "pylint", "test", rfactorlcdPlugin])
 
 
 # EOF #
