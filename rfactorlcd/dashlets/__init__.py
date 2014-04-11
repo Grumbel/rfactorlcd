@@ -14,26 +14,4 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-
-from .app import App
-from .style import Style
-from .state import rFactorState
-from .lcd_widget import LCDWidget
-from .dashlets.dashlet import Dashlet
-from .dashlets.temp_dashlet import TempDashlet
-from .dashlets.rpm_dashlet import RPMDashlet
-from .dashlets.rpm2_dashlet import RPM2Dashlet
-from .dashlets.speed_dashlet import SpeedDashlet
-from .dashlets.sector_dashlet import SectorDashlet
-from .dashlets.laptime_dashlet import LaptimeDashlet
-from .dashlets.position_dashlet import PositionDashlet
-
-
-__all__ = ["App", "Style", "rFactorState", "LCDWidget",
-           "Dashlet", "RPMDashlet", "TempDashlet", "SpeedDashlet",
-           "SectorDashlet", "LaptimeDashlet", "PositionDashlet",
-           "RPM2Dashlet"]
-
-
-
 # EOF #

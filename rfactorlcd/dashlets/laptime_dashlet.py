@@ -15,25 +15,24 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-from .app import App
-from .style import Style
-from .state import rFactorState
-from .lcd_widget import LCDWidget
-from .dashlets.dashlet import Dashlet
-from .dashlets.temp_dashlet import TempDashlet
-from .dashlets.rpm_dashlet import RPMDashlet
-from .dashlets.rpm2_dashlet import RPM2Dashlet
-from .dashlets.speed_dashlet import SpeedDashlet
-from .dashlets.sector_dashlet import SectorDashlet
-from .dashlets.laptime_dashlet import LaptimeDashlet
-from .dashlets.position_dashlet import PositionDashlet
+import rfactorlcd
 
 
-__all__ = ["App", "Style", "rFactorState", "LCDWidget",
-           "Dashlet", "RPMDashlet", "TempDashlet", "SpeedDashlet",
-           "SectorDashlet", "LaptimeDashlet", "PositionDashlet",
-           "RPM2Dashlet"]
+class LaptimeDashlet(rfactorlcd.Dashlet):
 
+    def __init__(self, *args):
+        super(LaptimeDashlet, self).__init__(*args)
+        self.laptime = "0:00"
+
+    def update_state(self, state):
+        if self.laptime != state.laptime:
+            self.laptime = state.laptime
+
+    def draw(self, cr):
+        cr.set_source_rgb(*self.lcd_style.foreground_color)
+        cr.move_to(0, self.h)
+        cr.set_font_size(self.h)
+        cr.show_text("LAP: %s" % self.laptime)
 
 
 # EOF #
