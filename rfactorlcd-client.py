@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 
 # rFactor Remote LCD
 # Copyright (C) 2014 Ingo Ruhnke <grumbel@gmail.com>
@@ -31,12 +31,23 @@ class rFactorLCDClient(object):
         try:
             print "Connecting to %s:%s" % (self.host, self.port)
             self.sock.connect((self.host, self.port))
-
-            while not self.quit:
+            stream = ""
+            while True:
                 self.sock.sendall("\n")
-                msg = self.sock.recv(4096)
-                print(msg)
-                print(struct.unpack_from("4s4s", msg))
+                stream += self.sock.recv(4096 * 4)
+                if len(stream) >= 8:
+                   tag, size = struct.unpack_from("4sI", stream)
+	           if len(stream) >= size:
+	                msg = stream[8:size]
+                        stream = stream[size:]
+                        print tag, size
+			#if tag == "TELM":
+			#    print "TeleM", struct.unpack_from("ffff", msg)
+			#elif tag == "SCOR":
+			#    l = struct.unpack_from("B", msg)
+			#    print "Score", struct.unpack_from("%dsIff" % l, msg[1:])
+			#else:
+			#    print tag
         finally:
             self.sock.close()
 
