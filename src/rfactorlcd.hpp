@@ -34,6 +34,9 @@
 class rFactorLCDPlugin : public InternalsPluginV3
 {
 private:
+  char m_ini_filename[MAX_PATH];
+  char m_log_filename[MAX_PATH];
+
   std::ofstream m_out;
   SOCKET m_listen_socket;
   std::vector<SOCKET> m_client_sockets;
@@ -71,12 +74,15 @@ public:
   virtual void EndSession();
 
   /** Called with new telemetry data ~90 times a second */
-  virtual void UpdateTelemetry( const TelemInfoV2 &info );
+  virtual void UpdateTelemetry(const TelemInfoV2 &info);
   virtual bool WantsTelemetryUpdates() { return true; }
 
   /** Called with new scoring data twice per second */
   virtual void UpdateScoring(const ScoringInfoV2& info);
   virtual bool WantsScoringUpdates() { return true; }
+
+private:
+  void init_filenames();
 
   void setup_winsock();
   void update_winsock();

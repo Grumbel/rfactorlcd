@@ -20,7 +20,7 @@ plugin_env = Environment(CXX = "i586-mingw32msvc-c++",
                          SHLIBPREFIX="",
                          SHLIBSUFFIX=".dll",
                          CPPPATH="external/InternalsPlugins/Include/",
-                         LIBS=["ws2_32"])
+                         LIBS=["ws2_32", "shlwapi"])
 rfactorlcdPlugin = plugin_env.SharedLibrary("rfactorlcdPlugin", ["src/rfactorlcd.cpp"])
 Default(rfactorlcdPlugin)
 

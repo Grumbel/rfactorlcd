@@ -18,8 +18,10 @@
 
 #include "rfactorlcd.hpp"
 
-// Need to link with Ws2_32.lib
+#include <shlwapi.h>
+
 #pragma comment(lib, "ws2_32.lib")
+#pragma comment(lib, "shlwapi.lib")
 
 
 InternalsPluginInfo g_PluginInfo;
@@ -48,13 +50,41 @@ PluginObjectInfo* __cdecl GetPluginObjectInfo(const unsigned uIndex)
 }
 
 rFactorLCDPlugin::rFactorLCDPlugin() :
+  m_ini_filename(),
+  m_log_filename(),
   m_out("C:\\rfactor_plugin.txt"),
-  m_listen_socket(INVALID_SOCKET)
+  m_listen_socket(INVALID_SOCKET),
+  m_client_sockets()
 {
+  init_filenames();
 }
 
 rFactorLCDPlugin::~rFactorLCDPlugin()
 {
+}
+
+void
+rFactorLCDPlugin::init_filenames()
+{
+  char path[MAX_PATH];
+  int bytes = GetModuleFileNameA(NULL, path, MAX_PATH);
+  if (bytes == 0)
+  {
+    m_out << "couldn't GetModuleFileNameA: " << GetLastError() << std::endl;
+  }
+  else
+  {
+    PathRemoveFileSpec(path);
+    PathAppend(path, "\\Plugins");
+
+    m_out << bytes << "Plugins path: " << path << std::endl;
+
+    PathCombine(m_ini_filename, path, "rfactorlcd.log");
+    PathCombine(m_log_filename, path, "rfactorlcd.log");
+
+    m_out << bytes << "log: " << m_ini_filename << std::endl;
+    m_out << bytes << "ini: " << m_log_filename << std::endl;
+  }
 }
 
 void
@@ -97,7 +127,6 @@ rFactorLCDPlugin::setup_winsock()
     if (ret != 0)
     {
       m_out << "error: getaddrinfo failed: " << ret << std::endl;
-      WSACleanup();
       return;
     }
 
@@ -106,7 +135,6 @@ rFactorLCDPlugin::setup_winsock()
     {
       m_out << "Error at socket(): " << WSAGetLastError() << std::endl;
       freeaddrinfo(result_info);
-      WSACleanup();
       return;
     }
 
@@ -116,15 +144,19 @@ rFactorLCDPlugin::setup_winsock()
       m_out << "bind failed with error: " << WSAGetLastError() << std::endl;
       freeaddrinfo(result_info);
       closesocket(m_listen_socket);
-      WSACleanup();
+      m_listen_socket = INVALID_SOCKET;
       return;
+    }
+    else
+    {
+      freeaddrinfo(result_info);
     }
 
     if (listen(m_listen_socket, SOMAXCONN) == SOCKET_ERROR)
     {
       m_out << "Listen failed with error: " << WSAGetLastError() << std::endl;
       closesocket(m_listen_socket);
-      WSACleanup();
+      m_listen_socket = INVALID_SOCKET;
       return;
     }
 
@@ -134,6 +166,9 @@ rFactorLCDPlugin::setup_winsock()
     if (ret != 0)
     {
       m_out << "ioctlsocket() failed: " << ret << std::endl;
+      closesocket(m_listen_socket);
+      m_listen_socket = INVALID_SOCKET;
+      return;
     }
   }
 }
@@ -148,29 +183,34 @@ rFactorLCDPlugin::update_winsock()
 void
 rFactorLCDPlugin::update_winsock_server()
 {
-  // listen for incoming connections
-  SOCKET client_socket = INVALID_SOCKET;
-  client_socket = accept(m_listen_socket, NULL, NULL);
-  if (client_socket != INVALID_SOCKET)
+  if (m_listen_socket != INVALID_SOCKET)
   {
-    u_long mode = 1;
-    int ret = ioctlsocket(client_socket, FIONBIO, &mode);
-    if (ret != 0)
+    SOCKET client_socket = accept(m_listen_socket, NULL, NULL);
+    if (client_socket != INVALID_SOCKET)
     {
-      m_out << "error: in update_winsock_server() ioctlsocket() failed: " << ret << std::endl;
-    }
+      u_long mode = 1;
+      int ret = ioctlsocket(client_socket, FIONBIO, &mode);
+      if (ret != 0)
+      {
+        m_out << "error: in update_winsock_server() ioctlsocket() failed: " << ret << std::endl;
+      }
 
-    m_client_sockets.push_back(client_socket);
-  }
-  else
-  {
-    int err = WSAGetLastError();
-    if (err != WSAEWOULDBLOCK)
+      m_client_sockets.push_back(client_socket);
+    }
+    else
     {
-      m_out << "error: accept() failed:" << err << std::endl;
-      closesocket(m_listen_socket);
-      WSACleanup();
-      return;
+      int err = WSAGetLastError();
+      switch(err)
+      {
+        case WSAEWOULDBLOCK:
+          break;
+
+        default:
+          m_out << "error: accept() failed:" << err << std::endl;
+          closesocket(m_listen_socket);
+          m_listen_socket = INVALID_SOCKET;
+          break;
+      }
     }
   }
 }
@@ -178,45 +218,53 @@ rFactorLCDPlugin::update_winsock_server()
 void
 rFactorLCDPlugin::update_winsock_clients()
 {
-  // check if any of the clients has send something
+  bool needs_cleanup = false;
 
-  int recvbuflen = 1024;
-  char recvbuf[1024];
-  int ret;
-  int iSendResult;
-
-  // Receive until the peer shuts down the connection
-  for(std::vector<SOCKET>::iterator sock_it =  m_client_sockets.begin();
+  for(std::vector<SOCKET>::iterator sock_it = m_client_sockets.begin();
       sock_it != m_client_sockets.end();
       ++sock_it)
   {
-    ret = recv(*sock_it, recvbuf, recvbuflen, 0);
-    if (ret > 0)
+    if (*sock_it != INVALID_SOCKET)
     {
-      m_out << "Bytes received:" << ret << std::endl;
+      char recvbuf[1024];
 
-      // Echo the buffer back to the sender
-      iSendResult = send(*sock_it, recvbuf, ret, 0);
-      if (iSendResult == SOCKET_ERROR)
+      int ret = recv(*sock_it, recvbuf, sizeof(recvbuf), 0);
+      if (ret > 0)
       {
-        m_out << "send failed:" << WSAGetLastError() << std::endl;
-        closesocket(*sock_it);
-        WSACleanup();
-        return;
+        m_out << "bytes received:" << ret << std::endl;
+
+        ret = send(*sock_it, recvbuf, ret, 0);
+        if (ret == SOCKET_ERROR)
+        {
+          m_out << "send failed:" << WSAGetLastError() << std::endl;
+          closesocket(*sock_it);
+          *sock_it = INVALID_SOCKET;
+          needs_cleanup = true;
+        }
+        m_out << "Bytes sent:" << ret << std::endl;
       }
-      m_out << "Bytes sent:" << iSendResult << std::endl;
+      else if (ret == 0)
+      {
+        m_out << "Connection closing..." << std::endl;
+        closesocket(*sock_it);
+        *sock_it = INVALID_SOCKET;
+        needs_cleanup = true;
+      }
+      else
+      {
+        m_out << "recv failed:" << WSAGetLastError() << std::endl;
+        closesocket(*sock_it);
+        *sock_it = INVALID_SOCKET;
+        needs_cleanup = true;
+      }
     }
-    else if (ret == 0)
-    {
-      m_out << "Connection closing..." << std::endl;
-    }
-    else
-    {
-      m_out << "recv failed:" << WSAGetLastError() << std::endl;
-      closesocket(*sock_it);
-      WSACleanup();
-      return;
-    }
+  }
+
+  if (needs_cleanup)
+  {
+    m_client_sockets.erase(std::remove(m_client_sockets.begin(), m_client_sockets.end(), 
+                                       INVALID_SOCKET),
+                           m_client_sockets.end());
   }
 }
 
@@ -231,18 +279,6 @@ void
 rFactorLCDPlugin::Startup()
 {
   m_out << "startup" << std::endl;
-
-  char buf[MAX_PATH];
-  int bytes = GetModuleFileNameA(NULL, buf, MAX_PATH);
-  if (bytes == 0)
-  {
-    m_out << "couldn't GetModuleFileNameA: " << GetLastError() << std::endl;
-  }
-  else
-  {
-    m_out << bytes << "   " << buf << std::endl;
-  }
-
   setup_winsock();
 }
 
@@ -280,7 +316,7 @@ rFactorLCDPlugin::EndSession()
 void
 rFactorLCDPlugin::UpdateTelemetry(const TelemInfoV2& info)
 {
-  m_out << "telemetry" << std::endl;
+  //m_out << "telemetry" << std::endl;
   update_winsock();
 }
 
