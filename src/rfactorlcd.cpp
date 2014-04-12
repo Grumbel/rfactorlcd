@@ -82,7 +82,7 @@ public:
     buffer()
   {
     d.tag = tag;
-    d.size = 0;
+    d.size = 8;
   }
 
   void write_string(const char* str)
@@ -92,7 +92,7 @@ public:
     int len = strlen(str);
     buffer[d.size] = len;
     d.size += 1;
-    memcpy(buffer + d.size + 1, str, len);
+    memcpy(buffer + d.size, str, len);
     d.size += len;
   }
 
@@ -113,7 +113,7 @@ public:
     return buffer;
   }
 
-  int get_size() const 
+  int get_size() const
   {
     return 8 + d.size;
   }
@@ -197,7 +197,7 @@ rFactorLCDPlugin::setup_winsock()
 
     struct addrinfo* result_info = NULL;
     char port[32];
-    snprintf(port, 32, "%d", m_port);
+    sprintf_s(port, sizeof(port), "%d", m_port);
     ret = getaddrinfo(NULL, port, &hints, &result_info);
     if (ret != 0)
     {
@@ -342,9 +342,10 @@ rFactorLCDPlugin::update_winsock_clients()
     }
   }
 
+  m_out << "update winsock clients: cleanup" << std::endl;
   if (needs_cleanup)
   {
-    m_client_sockets.erase(std::remove(m_client_sockets.begin(), m_client_sockets.end(), 
+    m_client_sockets.erase(std::remove(m_client_sockets.begin(), m_client_sockets.end(),
                                        INVALID_SOCKET),
                            m_client_sockets.end());
   }
