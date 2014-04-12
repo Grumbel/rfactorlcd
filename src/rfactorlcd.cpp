@@ -509,7 +509,6 @@ rFactorLCDPlugin::UpdateScoring(const ScoringInfoV2& info)
     msg.write_float(info.mEndET);
     msg.write_int(info.mMaxLaps);
     msg.write_float(info.mLapDist);
-    msg.write_int(info.mNumVehicles);
     send_message(msg);
   }
   {
@@ -531,6 +530,7 @@ rFactorLCDPlugin::UpdateScoring(const ScoringInfoV2& info)
   {
     // per vehicle data
     NetworkMessage msg(VEHICLE_TAG);
+    msg.write_int(info.mNumVehicles);
     for(int i = 0; i < info.mNumVehicles; ++i)
     {
       VehicleScoringInfoV2& veh = info.mVehicle[i];
