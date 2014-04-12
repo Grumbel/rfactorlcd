@@ -20,9 +20,24 @@
 
 #include <algorithm>
 #include <shlwapi.h>
+#include <string.h>
 
 #pragma comment(lib, "ws2_32.lib")
 #pragma comment(lib, "shlwapi.lib")
+
+
+#define FOURCC(a, b, c, d) ((a) | (b << 8) | (c << 16) | (d << 24))
+
+#define START_SESSION_TAG FOURCC('S', 'T', 'S', 'S')
+#define END_SESSION_TAG FOURCC('E', 'D', 'S', 'S')
+
+#define START_REALTIME_TAG FOURCC('S', 'T', 'R', 'T')
+#define END_REALTIME_TAG FOURCC('E', 'D', 'R', 'T')
+
+#define TELEMETRY_TAG FOURCC('T', 'E', 'L', 'M')
+#define SCORE_TAG FOURCC('S', 'C', 'O', 'R')
+
+#define INFO_TAG FOURCC('I', 'N', 'F', 'O')
 
 
 InternalsPluginInfo g_PluginInfo;
@@ -49,6 +64,60 @@ PluginObjectInfo* __cdecl GetPluginObjectInfo(const unsigned uIndex)
     return 0;
   }
 }
+
+class NetworkMessage
+{
+private:
+  union
+  {
+    char buffer[4096];
+    struct {
+      int tag;
+      int size;
+    } d;
+  };
+
+public:
+  NetworkMessage(int tag) :
+    buffer()
+  {
+    d.tag = tag;
+    d.size = 0;
+  }
+
+  void write_string(const char* str)
+  {
+    // write Pascal like string with the first byte giving the length
+    // of the string
+    int len = strlen(str);
+    buffer[d.size] = len;
+    d.size += 1;
+    memcpy(buffer + d.size + 1, str, len);
+    d.size += len;
+  }
+
+  void write_int(int v)
+  {
+    reinterpret_cast<int&>(buffer[d.size]) = v;
+    d.size += 4;
+  }
+
+  void write_float(float v)
+  {
+    reinterpret_cast<float&>(buffer[d.size]) = v;
+    d.size += 4;
+  }
+
+  const char* get_data() const
+  {
+    return buffer;
+  }
+
+  int get_size() const 
+  {
+    return 8 + d.size;
+  }
+};
 
 rFactorLCDPlugin::rFactorLCDPlugin() :
   m_ini_filename(),
@@ -88,6 +157,8 @@ rFactorLCDPlugin::init_filenames()
     m_out << bytes << "ini: " << m_log_filename << std::endl;
 
     m_port = GetPrivateProfileInt("rfactorlcd", "port", m_port, m_ini_filename);
+
+    m_out << bytes << "port: " << m_port << std::endl;
   }
 }
 
@@ -117,8 +188,6 @@ rFactorLCDPlugin::setup_winsock()
   }
   else
   {
-    const char* DEFAULT_PORT = "2909";
-
     struct addrinfo hints;
     ZeroMemory(&hints, sizeof(hints));
     hints.ai_family = AF_INET;
@@ -239,15 +308,18 @@ rFactorLCDPlugin::update_winsock_clients()
       {
         m_out << "bytes received:" << ret << std::endl;
 
-        ret = send(*sock_it, recvbuf, ret, 0);
-        if (ret == SOCKET_ERROR)
+        if (false) // echo server
         {
-          m_out << "send failed:" << WSAGetLastError() << std::endl;
-          closesocket(*sock_it);
-          *sock_it = INVALID_SOCKET;
-          needs_cleanup = true;
+          ret = send(*sock_it, recvbuf, ret, 0);
+          if (ret == SOCKET_ERROR)
+          {
+            m_out << "send failed:" << WSAGetLastError() << std::endl;
+            closesocket(*sock_it);
+            *sock_it = INVALID_SOCKET;
+            needs_cleanup = true;
+          }
+          m_out << "Bytes sent:" << ret << std::endl;
         }
-        m_out << "Bytes sent:" << ret << std::endl;
       }
       else if (ret == 0)
       {
@@ -275,6 +347,26 @@ rFactorLCDPlugin::update_winsock_clients()
     m_client_sockets.erase(std::remove(m_client_sockets.begin(), m_client_sockets.end(), 
                                        INVALID_SOCKET),
                            m_client_sockets.end());
+  }
+}
+
+void
+rFactorLCDPlugin::send_message(const NetworkMessage& msg)
+{
+  for(std::vector<SOCKET>::iterator sock_it = m_client_sockets.begin();
+      sock_it != m_client_sockets.end();
+      ++sock_it)
+  {
+    if (*sock_it != INVALID_SOCKET)
+    {
+      int ret = send(*sock_it, msg.get_data(), msg.get_size(), 0);
+      if (ret == SOCKET_ERROR)
+      {
+        m_out << "send failed:" << WSAGetLastError() << std::endl;
+        closesocket(*sock_it);
+        *sock_it = INVALID_SOCKET;
+      }
+    }
   }
 }
 
@@ -315,6 +407,9 @@ void
 rFactorLCDPlugin::StartSession()
 {
   m_out << "start_session" << std::endl;
+
+  NetworkMessage msg(START_SESSION_TAG);
+  send_message(msg);
 }
 
 void
@@ -328,12 +423,29 @@ rFactorLCDPlugin::UpdateTelemetry(const TelemInfoV2& info)
 {
   //m_out << "telemetry" << std::endl;
   update_winsock();
+
+  NetworkMessage msg(TELEMETRY_TAG);
+  msg.write_float(info.mEngineRPM);
+  msg.write_float(info.mEngineWaterTemp);
+  msg.write_float(info.mEngineOilTemp);
+  msg.write_float(info.mClutchRPM);
+  send_message(msg);
 }
 
 void
 rFactorLCDPlugin::UpdateScoring(const ScoringInfoV2& info)
 {
   m_out << "scoring" << std::endl;
+
+  NetworkMessage msg(SCORE_TAG);
+  msg.write_string(info.mTrackName);
+  msg.write_int(info.mSession);
+  msg.write_float(info.mCurrentET);
+  msg.write_float(info.mEndET);
+  msg.write_int(info.mMaxLaps);
+  msg.write_float(info.mLapDist);
+  send_message(msg);
+
   update_winsock();
 }
 

@@ -31,6 +31,9 @@
 #include "InternalsPlugin.hpp"
 
 
+class NetworkMessage;
+
+
 class rFactorLCDPlugin : public InternalsPluginV3
 {
 private:
@@ -90,6 +93,7 @@ private:
   void update_winsock_server();
   void update_winsock_clients();
   void shutdown_winsock();
+  void send_message(const NetworkMessage& msg);
 
 private:
   rFactorLCDPlugin(const rFactorLCDPlugin&);
