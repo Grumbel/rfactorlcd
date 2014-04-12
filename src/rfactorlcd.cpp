@@ -38,6 +38,7 @@
 #define SCORE_TAG FOURCC('S', 'C', 'O', 'R')
 
 #define INFO_TAG FOURCC('I', 'N', 'F', 'O')
+#define VEHICLE_TAG FOURCC('V', 'E', 'H', 'L')
 
 
 InternalsPluginInfo g_PluginInfo;
@@ -85,7 +86,7 @@ public:
     d.size = 8;
   }
 
-  void write_string(const char* str)
+  inline void write_string(const char* str)
   {
     // write Pascal like string with the first byte giving the length
     // of the string
@@ -96,26 +97,38 @@ public:
     d.size += len;
   }
 
-  void write_int(int v)
+  inline void write_char(char v)
+  {
+    buffer[d.size] = v;
+    d.size += sizeof(v);
+  }
+
+  inline void write_short(short v)
+  {
+    buffer[d.size] = v;
+    d.size += sizeof(v);
+  }
+
+  inline void write_int(int v)
   {
     reinterpret_cast<int&>(buffer[d.size]) = v;
-    d.size += 4;
+    d.size += sizeof(v);
   }
 
-  void write_float(float v)
+  inline void write_float(float v)
   {
     reinterpret_cast<float&>(buffer[d.size]) = v;
-    d.size += 4;
+    d.size += sizeof(v);
   }
 
-  const char* get_data() const
+  inline const char* get_data() const
   {
     return buffer;
   }
 
-  int get_size() const
+  inline int get_size() const
   {
-    return 8 + d.size;
+    return d.size;
   }
 };
 
@@ -197,7 +210,7 @@ rFactorLCDPlugin::setup_winsock()
 
     struct addrinfo* result_info = NULL;
     char port[32];
-    sprintf_s(port, sizeof(port), "%d", m_port);
+    sprintf(port, "%d", m_port);
     ret = getaddrinfo(NULL, port, &hints, &result_info);
     if (ret != 0)
     {
@@ -398,12 +411,18 @@ void
 rFactorLCDPlugin::EnterRealtime()
 {
   m_out << "enter_realtime" << std::endl;
+
+  NetworkMessage msg(START_REALTIME_TAG);
+  send_message(msg);
 }
 
 void
 rFactorLCDPlugin::ExitRealtime()
 {
   m_out << "exit_realtime" << std::endl;
+
+  NetworkMessage msg(END_REALTIME_TAG);
+  send_message(msg);
 }
 
 void
@@ -419,6 +438,9 @@ void
 rFactorLCDPlugin::EndSession()
 {
   m_out << "end_session" << std::endl;
+
+  NetworkMessage msg(END_SESSION_TAG);
+  send_message(msg);
 }
 
 void
@@ -428,10 +450,47 @@ rFactorLCDPlugin::UpdateTelemetry(const TelemInfoV2& info)
   update_winsock();
 
   NetworkMessage msg(TELEMETRY_TAG);
+  msg.write_int(info.mGear);
   msg.write_float(info.mEngineRPM);
+  msg.write_float(info.mEngineMaxRPM);
+  msg.write_float(info.mClutchRPM);
+
+  msg.write_float(info.mFuel);
   msg.write_float(info.mEngineWaterTemp);
   msg.write_float(info.mEngineOilTemp);
-  msg.write_float(info.mClutchRPM);
+
+  msg.write_float(info.mUnfilteredThrottle);
+  msg.write_float(info.mUnfilteredBrake);
+  msg.write_float(info.mUnfilteredSteering);
+  msg.write_float(info.mUnfilteredClutch);
+
+  msg.write_float(info.mSteeringArmForce);
+
+  for(int i = 0; i < 8; ++i)
+  {
+    msg.write_char(info.mDentSeverity[i]);
+  }
+
+  for(int i = 0; i < 4; ++i)
+  {
+    const TelemWheelV2& wheel = info.mWheel[i];
+    msg.write_float(wheel.mRotation);
+    msg.write_float(wheel.mSuspensionDeflection);
+    msg.write_float(wheel.mRideHeight);
+    msg.write_float(wheel.mTireLoad);
+    msg.write_float(wheel.mLateralForce);
+    msg.write_float(wheel.mGripFract);
+    msg.write_float(wheel.mBrakeTemp);
+    msg.write_float(wheel.mPressure);
+    msg.write_float(wheel.mTemperature[0]);
+    msg.write_float(wheel.mTemperature[1]);
+    msg.write_float(wheel.mTemperature[2]);
+
+    msg.write_float(wheel.mWear);
+    msg.write_char(wheel.mSurfaceType);
+    msg.write_char(wheel.mFlat);
+    msg.write_char(wheel.mDetached);
+  }
   send_message(msg);
 }
 
@@ -440,15 +499,70 @@ rFactorLCDPlugin::UpdateScoring(const ScoringInfoV2& info)
 {
   m_out << "scoring" << std::endl;
 
-  NetworkMessage msg(SCORE_TAG);
-  msg.write_string(info.mTrackName);
-  msg.write_int(info.mSession);
-  msg.write_float(info.mCurrentET);
-  msg.write_float(info.mEndET);
-  msg.write_int(info.mMaxLaps);
-  msg.write_float(info.mLapDist);
-  m_out << "scoring building mgs done" << std::endl;
-  send_message(msg);
+  {
+    // data that should be constant across a session
+    NetworkMessage msg(INFO_TAG);
+    msg.write_string(info.mTrackName);
+    msg.write_string(info.mPlayerName);
+    msg.write_string(info.mPlrFileName);
+    msg.write_float(info.mEndET);
+    msg.write_int(info.mMaxLaps);
+    msg.write_float(info.mLapDist);
+    msg.write_float(info.mNumVehicles);
+    send_message(msg);
+  }
+  {
+    // data that varies
+    NetworkMessage msg(SCORE_TAG);
+    msg.write_char(info.mGamePhase);
+    msg.write_char(info.mYellowFlagState);
+    msg.write_char(info.mSectorFlag[0]);
+    msg.write_char(info.mSectorFlag[1]);
+    msg.write_char(info.mSectorFlag[2]);
+    msg.write_char(info.mStartLight);
+    msg.write_char(info.mNumRedLights);
+    msg.write_int(info.mSession);
+    msg.write_float(info.mCurrentET);
+    msg.write_float(info.mAmbientTemp);
+    msg.write_float(info.mTrackTemp);
+    send_message(msg);
+  }
+  {
+    // per vehicle data
+    NetworkMessage msg(VEHICLE_TAG);
+    for(int i = 0; i < info.mNumVehicles; ++i)
+    {
+      VehicleScoringInfoV2& veh = info.mVehicle[i];
+
+      msg.write_char(veh.mIsPlayer);
+      msg.write_string(veh.mDriverName);
+      msg.write_string(veh.mVehicleName);
+      msg.write_string(veh.mVehicleClass);
+      msg.write_short(veh.mTotalLaps);
+
+      msg.write_char(veh.mInPits);
+      msg.write_char(veh.mPlace);
+      msg.write_float(veh.mTimeBehindNext);
+      msg.write_int(veh.mLapsBehindNext);
+      msg.write_float(veh.mTimeBehindLeader);
+      msg.write_int(veh.mLapsBehindLeader);
+
+      msg.write_float(veh.mBestSector1);
+      msg.write_float(veh.mBestSector2);
+      msg.write_float(veh.mBestLapTime);
+      msg.write_float(veh.mLastSector1);
+      msg.write_float(veh.mLastSector2);
+      msg.write_float(veh.mLastLapTime);
+      msg.write_float(veh.mCurSector1);
+      msg.write_float(veh.mCurSector2);
+
+      msg.write_short(veh.mNumPitstops);
+      msg.write_short(veh.mNumPenalties);
+
+      msg.write_int(veh.mLapStartET);
+    }
+    send_message(msg);
+  }
   m_out << "scoring sending mgs done" << std::endl;
 
   update_winsock();
