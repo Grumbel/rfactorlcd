@@ -258,6 +258,7 @@ rFactorLCDPlugin::update_winsock()
 void
 rFactorLCDPlugin::update_winsock_server()
 {
+  m_out << "update winsock server" << std::endl;
   if (m_listen_socket != INVALID_SOCKET)
   {
     SOCKET client_socket = accept(m_listen_socket, NULL, NULL);
@@ -293,6 +294,7 @@ rFactorLCDPlugin::update_winsock_server()
 void
 rFactorLCDPlugin::update_winsock_clients()
 {
+  m_out << "update winsock clients: " << m_client_sockets.size() << std::endl;
   bool needs_cleanup = false;
 
   for(std::vector<SOCKET>::iterator sock_it = m_client_sockets.begin();
@@ -445,9 +447,12 @@ rFactorLCDPlugin::UpdateScoring(const ScoringInfoV2& info)
   msg.write_float(info.mEndET);
   msg.write_int(info.mMaxLaps);
   msg.write_float(info.mLapDist);
+  m_out << "scoring building mgs done" << std::endl;
   send_message(msg);
+  m_out << "scoring sending mgs done" << std::endl;
 
   update_winsock();
+  m_out << "scoring update winsock done" << std::endl;
 }
 
 /* EOF */
