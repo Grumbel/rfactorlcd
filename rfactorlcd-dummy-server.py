@@ -40,7 +40,7 @@ class ThreadedTCPServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
 
 def main():
     try:
-        host, port = "localhost", 2999
+        host, port = "", 2999
         # server = SocketServer.TCPServer((host, port), MyTCPHandler)
         server = ThreadedTCPServer((host, port), MyTCPHandler)
 

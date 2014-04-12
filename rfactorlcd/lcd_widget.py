@@ -55,7 +55,7 @@ class LCDWidget(gtk.DrawingArea):
         # rpm2_dashlet.set_geometry(600, 400, 400, 300)
 
         self.dashlets = [rpm_dashlet, speed_dashlet, temp_dashlet,
-                         sector_dashlet, laptime_dashlet, position_dashlet, 
+                         sector_dashlet, laptime_dashlet, position_dashlet,
                          shiftlights_dashlet]
 
         self.active_dashlet = None

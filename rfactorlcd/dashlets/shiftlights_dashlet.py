@@ -21,7 +21,7 @@ import rfactorlcd
 
 
 class ShiftlightsDashlet(rfactorlcd.Dashlet):
- 
+
     def __init__(self, *args):
         super(ShiftlightsDashlet, self).__init__(*args)
 
@@ -53,7 +53,7 @@ class ShiftlightsDashlet(rfactorlcd.Dashlet):
             cr.arc((i+0.5) * self.w / n,
                    self.h/2, r,
                    0, 2 * math.pi)
-            
+
             p = ((i+1.0) / n)
             if p * 0.9 > (rpm_p - 0.5) * 2:
                 cr.set_source_rgb(0.4, 0.4, 0.4)
