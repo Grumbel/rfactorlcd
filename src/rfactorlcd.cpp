@@ -105,7 +105,7 @@ public:
 
   inline void write_short(short v)
   {
-    buffer[d.size] = v;
+    reinterpret_cast<short&>(buffer[d.size]) = v;
     d.size += sizeof(v);
   }
 
@@ -375,6 +375,7 @@ rFactorLCDPlugin::send_message(const NetworkMessage& msg)
   {
     if (*sock_it != INVALID_SOCKET)
     {
+      m_out << "network send: " << msg.get_size() << std::endl;
       int ret = send(*sock_it, msg.get_data(), msg.get_size(), 0);
       if (ret == SOCKET_ERROR)
       {
@@ -508,7 +509,7 @@ rFactorLCDPlugin::UpdateScoring(const ScoringInfoV2& info)
     msg.write_float(info.mEndET);
     msg.write_int(info.mMaxLaps);
     msg.write_float(info.mLapDist);
-    msg.write_float(info.mNumVehicles);
+    msg.write_int(info.mNumVehicles);
     send_message(msg);
   }
   {
@@ -559,7 +560,7 @@ rFactorLCDPlugin::UpdateScoring(const ScoringInfoV2& info)
       msg.write_short(veh.mNumPitstops);
       msg.write_short(veh.mNumPenalties);
 
-      msg.write_int(veh.mLapStartET);
+      msg.write_float(veh.mLapStartET);
     }
     send_message(msg);
   }
