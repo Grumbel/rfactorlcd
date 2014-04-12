@@ -17,7 +17,7 @@
 plugin_env = Environment(CXX = "i586-mingw32msvc-c++",
                          AR = "i586-mingw32msvc-ar",
                          RANLIB = "i586-mingw32msvc-ranlib",
-                         CXXFLAGS=['-Wall'],
+                         CXXFLAGS=["-Wall", "-Wconversion"],
                          SHLIBPREFIX="",
                          SHLIBSUFFIX=".dll",
                          CPPPATH="external/InternalsPlugins/Include/",
