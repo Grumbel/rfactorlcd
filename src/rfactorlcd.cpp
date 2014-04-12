@@ -34,11 +34,11 @@
 #define START_REALTIME_TAG FOURCC('S', 'T', 'R', 'T')
 #define END_REALTIME_TAG FOURCC('E', 'D', 'R', 'T')
 
-#define TELEMETRY_TAG FOURCC('T', 'E', 'L', 'M')
+#define TELEMETRY_TAG FOURCC('T', 'L', 'M', 'T')
 #define SCORE_TAG FOURCC('S', 'C', 'O', 'R')
 
 #define INFO_TAG FOURCC('I', 'N', 'F', 'O')
-#define VEHICLE_TAG FOURCC('V', 'E', 'H', 'L')
+#define VEHICLE_TAG FOURCC('V', 'H', 'C', 'L')
 
 
 InternalsPluginInfo g_PluginInfo;
