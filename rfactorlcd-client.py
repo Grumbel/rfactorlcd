@@ -22,9 +22,49 @@ import socket
 
 
 class rFactorLCDClient(object):
+
     def __init__(self):
         self.host = "duo"
         self.port = 4580
+
+    def on_start_session(self, payload):
+        print "start_session"
+
+    def on_end_session(self, payload):
+        print "end_session"
+
+    def on_start_realtime(self, payload):
+        print "start_realtime"
+
+    def on_end_realtime(self, payload):
+        print "end_realtime"
+
+    def on_telemetry(self, payload):
+        print "telemetry"
+
+    def on_vehicle(self, payload):
+        print "vehicle"
+
+    def on_score(self, payload):
+        print "score"
+
+    def dispatch_message(self, tag, payload):
+        if tag == "STSS":
+            self.on_start_session(payload)
+        elif tag == "EDSS":
+            self.on_end_session(payload)
+        elif tag == "STRT":
+            self.on_start_realtime(payload)
+        elif tag == "EDRT":
+            self.on_end_realtime(payload)
+        elif tag == "VHCL":
+            self.on_vehicle(payload)
+        elif tag == "TLMT":
+            self.on_telemetry(payload)
+        elif tag == "SCOR":
+            self.on_score(payload)
+        else:
+            print "error: unhandled tag: %s" % tag
 
     def main(self):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -36,18 +76,13 @@ class rFactorLCDClient(object):
                 self.sock.sendall("\n")
                 stream += self.sock.recv(4096 * 4)
                 if len(stream) >= 8:
-                   tag, size = struct.unpack_from("4sI", stream)
-	           if len(stream) >= size:
-	                msg = stream[8:size]
+                    tag, size = struct.unpack_from("4sI", stream)
+                    if len(stream) >= size:
+                        payload = stream[8:size]
                         stream = stream[size:]
                         print tag, size
-			#if tag == "TELM":
-			#    print "TeleM", struct.unpack_from("ffff", msg)
-			#elif tag == "SCOR":
-			#    l = struct.unpack_from("B", msg)
-			#    print "Score", struct.unpack_from("%dsIff" % l, msg[1:])
-			#else:
-			#    print tag
+
+                        self.dispatch_message(tag, payload)
         finally:
             self.sock.close()
 
