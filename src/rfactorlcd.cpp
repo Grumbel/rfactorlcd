@@ -18,6 +18,7 @@
 
 #include "rfactorlcd.hpp"
 
+#include <algorithm>
 #include <shlwapi.h>
 
 #pragma comment(lib, "ws2_32.lib")
@@ -79,7 +80,7 @@ rFactorLCDPlugin::init_filenames()
 
     m_out << bytes << "Plugins path: " << path << std::endl;
 
-    PathCombine(m_ini_filename, path, "rfactorlcd.log");
+    PathCombine(m_ini_filename, path, "rfactorlcd.ini");
     PathCombine(m_log_filename, path, "rfactorlcd.log");
 
     m_out << bytes << "log: " << m_ini_filename << std::endl;
@@ -252,10 +253,14 @@ rFactorLCDPlugin::update_winsock_clients()
       }
       else
       {
-        m_out << "recv failed:" << WSAGetLastError() << std::endl;
-        closesocket(*sock_it);
-        *sock_it = INVALID_SOCKET;
-        needs_cleanup = true;
+        int err = WSAGetLastError();
+        if (err != WSAEWOULDBLOCK)
+        {
+          m_out << "recv failed:" << err << std::endl;
+          closesocket(*sock_it);
+          *sock_it = INVALID_SOCKET;
+          needs_cleanup = true;
+        }
       }
     }
   }
