@@ -36,6 +36,7 @@ class rFactorLCDPlugin : public InternalsPluginV3
 private:
   char m_ini_filename[MAX_PATH];
   char m_log_filename[MAX_PATH];
+  int m_port;
 
   std::ofstream m_out;
   SOCKET m_listen_socket;

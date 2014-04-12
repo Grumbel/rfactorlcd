@@ -53,6 +53,7 @@ PluginObjectInfo* __cdecl GetPluginObjectInfo(const unsigned uIndex)
 rFactorLCDPlugin::rFactorLCDPlugin() :
   m_ini_filename(),
   m_log_filename(),
+  m_port(4580),
   m_out("C:\\rfactor_plugin.txt"),
   m_listen_socket(INVALID_SOCKET),
   m_client_sockets()
@@ -85,6 +86,8 @@ rFactorLCDPlugin::init_filenames()
 
     m_out << bytes << "log: " << m_ini_filename << std::endl;
     m_out << bytes << "ini: " << m_log_filename << std::endl;
+
+    m_port = GetPrivateProfileInt("rfactorlcd", "port", m_port, m_ini_filename);
   }
 }
 
@@ -124,7 +127,9 @@ rFactorLCDPlugin::setup_winsock()
     hints.ai_flags = AI_PASSIVE;
 
     struct addrinfo* result_info = NULL;
-    ret = getaddrinfo(NULL, DEFAULT_PORT, &hints, &result_info);
+    char port[32];
+    snprintf(port, 32, "%d", m_port);
+    ret = getaddrinfo(NULL, port, &hints, &result_info);
     if (ret != 0)
     {
       m_out << "error: getaddrinfo failed: " << ret << std::endl;
