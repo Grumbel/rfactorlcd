@@ -31,7 +31,7 @@ class LCDWidget(gtk.DrawingArea):
         self.lcd_style = rfactorlcd.Style.white_on_black()
 
         rpm_dashlet = rfactorlcd.RPMDashlet(self, self.lcd_style)
-        rpm_dashlet.set_geometry(100, 100, 500, 500)
+        rpm_dashlet.set_geometry(100, 100, 300, 300)
 
         temp_dashlet = rfactorlcd.TempDashlet(self, self.lcd_style)
         temp_dashlet.set_geometry(600, 300, 450, 250)
@@ -48,11 +48,15 @@ class LCDWidget(gtk.DrawingArea):
         position_dashlet = rfactorlcd.PositionDashlet(self, self.lcd_style)
         position_dashlet.set_geometry(50, 750, 800, 100)
 
+        shiftlights_dashlet = rfactorlcd.ShiftlightsDashlet(self, self.lcd_style)
+        shiftlights_dashlet.set_geometry(00, 0, 1200, 80)
+
         # rpm2_dashlet = rfactorlcd.RPM2Dashlet(self, self.lcd_style)
         # rpm2_dashlet.set_geometry(600, 400, 400, 300)
 
         self.dashlets = [rpm_dashlet, speed_dashlet, temp_dashlet,
-                         sector_dashlet, laptime_dashlet, position_dashlet]
+                         sector_dashlet, laptime_dashlet, position_dashlet, 
+                         shiftlights_dashlet]
 
         self.active_dashlet = None
         self.drag_dashlet = None

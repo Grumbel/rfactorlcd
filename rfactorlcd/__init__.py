@@ -27,12 +27,13 @@ from .dashlets.speed_dashlet import SpeedDashlet
 from .dashlets.sector_dashlet import SectorDashlet
 from .dashlets.laptime_dashlet import LaptimeDashlet
 from .dashlets.position_dashlet import PositionDashlet
+from .dashlets.shiftlights_dashlet import ShiftlightsDashlet
 
 
 __all__ = ["App", "Style", "rFactorState", "LCDWidget",
            "Dashlet", "RPMDashlet", "TempDashlet", "SpeedDashlet",
            "SectorDashlet", "LaptimeDashlet", "PositionDashlet",
-           "RPM2Dashlet"]
+           "RPM2Dashlet", "ShiftlightsDashlet"]
 
 
 
