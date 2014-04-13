@@ -35,8 +35,9 @@ class RPMDashlet(rfactorlcd.Dashlet):
         self.end_angle = 360
 
         self.rpm = 0
-        self.max_rpm = 10000
         self.gear = 0
+        self.max_rpm = 10000
+        self.dmax_rpm = 10000
 
     def reshape(self, x, y, w, h):
         max_radius = min(w, h) / 2
@@ -50,9 +51,11 @@ class RPMDashlet(rfactorlcd.Dashlet):
            self.gear != state.gear:
 
             self.rpm = state.rpm
-            self.max_rpm = state.max_rpm
             self.gear = state.gear
-
+            if self.max_rpm != state.max_rpm:
+                self.max_rpm = state.max_rpm
+                self.dmax_rpm = int(self.max_rpm + 999) / 1000 * 1000
+                self.background = None
             self.queue_draw()
 
     def draw(self, cr):
@@ -91,7 +94,7 @@ class RPMDashlet(rfactorlcd.Dashlet):
         self.draw_gear(cr)
 
     def draw_needle(self, cr):
-        p = self.rpm / self.max_rpm
+        p = self.rpm / self.dmax_rpm
 
         cr.save()
         cr.rotate(math.radians(self.start_angle + (self.end_angle - self.start_angle - 1) * p))
@@ -121,12 +124,12 @@ class RPMDashlet(rfactorlcd.Dashlet):
 
     def draw_background(self, cr):
         cr.move_to(0, 0)
-        # for deg in range(self.start_angle, self.end_angle + 1, 10):  # int((end - start) / int((max_rpm + 500)/1000))):
+        # for deg in range(self.start_angle, self.end_angle + 1, 10):  # int((end - start) / int((dmax_rpm + 500)/1000))):
 
         cr.set_line_width(6.0)
         cr.set_source_rgb(*self.lcd_style.shadow_color)
-        for rpm in range(0, self.max_rpm+1, 200):
-            p = rpm / float(self.max_rpm)
+        for rpm in range(0, int(self.dmax_rpm+1), 200):
+            p = rpm / float(self.dmax_rpm)
             deg = self.start_angle + (self.end_angle - self.start_angle) * p
             rad = math.radians(deg)
 
@@ -141,8 +144,8 @@ class RPMDashlet(rfactorlcd.Dashlet):
 
         cr.set_line_width(8.0)
         cr.set_source_rgb(*self.lcd_style.foreground_color)
-        for rpm in range(0, self.max_rpm+1, 1000):
-            p = rpm / float(self.max_rpm)
+        for rpm in range(0, int(self.dmax_rpm+1), 1000):
+            p = rpm / float(self.dmax_rpm)
             deg = self.start_angle + (self.end_angle - self.start_angle) * p
             rad = math.radians(deg)
             if True:

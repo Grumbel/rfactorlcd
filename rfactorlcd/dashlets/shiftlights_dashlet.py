@@ -46,7 +46,7 @@ class ShiftlightsDashlet(rfactorlcd.Dashlet):
         if self.max_rpm == 0:
             rpm_p = 0.0
         else:
-            rpm_p = max((self.rpm - self.start_rpm) / self.max_rpm, 0.0)
+            rpm_p = max((self.rpm - self.start_rpm) / (self.max_rpm - self.start_rpm), 0.0)
 
         n = 15
         r = self.h/2 * 0.8
