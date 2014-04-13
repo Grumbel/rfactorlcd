@@ -19,19 +19,20 @@
 
 import SocketServer
 import threading
+import time
 
 
 class MyTCPHandler(SocketServer.BaseRequestHandler):
 
     def handle(self):
-        with open("rfactorlcd-dummy-server.log") as fin:
+        with open("raw.log") as fin:
             while True:
                 line = fin.readline()
                 if not line:
                     fin.seek(0)
                 self.data = self.request.recv(1024)
                 self.request.sendall(line)
-                # time.sleep(0.001)
+                time.sleep(0.005)  # 2x regular speed
 
 
 class ThreadedTCPServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
@@ -40,7 +41,7 @@ class ThreadedTCPServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
 
 def main():
     try:
-        host, port = "", 2999
+        host, port = "", 4580
         # server = SocketServer.TCPServer((host, port), MyTCPHandler)
         server = ThreadedTCPServer((host, port), MyTCPHandler)
 

@@ -22,6 +22,7 @@ import threading
 import glib
 import datetime
 import os
+import struct
 
 import rfactorlcd
 
@@ -85,16 +86,22 @@ class App(object):
                 print "Connecting to %s:%s" % (self.host, self.port)
                 self.sock.connect((self.host, self.port))
 
+                state = rfactorlcd.rFactorState()
+                stream = ""
                 while not self.quit:
                     self.sock.sendall("\n")
-                    received = self.sock.recv(1024)
-                    fout.write(received)
-
-                    try:
-                        state = rfactorlcd.rFactorState(received)
-                        glib.idle_add(self.lcd.update_state, state)
-                    except Exception as e:
-                        print "exception:", e
+                    stream += self.sock.recv(1024)
+                    if len(stream) >= 8:
+                        tag, size = struct.unpack_from("4sI", stream)
+                        if len(stream) >= size:
+                            # fout.write(stream[0:size])
+                            payload = stream[8:size]
+                            stream = stream[size:]
+                            try:
+                                state.dispatch_message(tag, payload)
+                                glib.idle_add(self.lcd.update_state, state)
+                            except Exception as e:
+                                print "exception:", e
             finally:
                 self.sock.close()
 
@@ -181,7 +188,7 @@ class App(object):
         parser = argparse.ArgumentParser(description='rFactor Remote LCD')
         parser.add_argument('HOST', type=str, nargs='?', default="127.0.0.1",
                             help='HOST to connect to')
-        parser.add_argument('PORT', type=int, default=2999, nargs='?',
+        parser.add_argument('PORT', type=int, default=4580, nargs='?',
                             help='PORT to connect to')
         parser.add_argument("-c", "--config", type=str,
                             help="Config file to load")
