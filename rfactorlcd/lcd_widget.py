@@ -34,10 +34,10 @@ class LCDWidget(gtk.DrawingArea):
         rpm_dashlet.set_geometry(100, 100, 300, 300)
 
         temp_dashlet = rfactorlcd.TempDashlet(self, self.lcd_style)
-        temp_dashlet.set_geometry(600, 300, 450, 250)
+        temp_dashlet.set_geometry(700, 250, 450, 250)
 
         speed_dashlet = rfactorlcd.SpeedDashlet(self, self.lcd_style)
-        speed_dashlet.set_geometry(500, 150, 400, 200)
+        speed_dashlet.set_geometry(580, 50, 400, 200)
 
         sector_dashlet = rfactorlcd.SectorDashlet(self, self.lcd_style)
         sector_dashlet.set_geometry(800, 550, 300, 300)
@@ -49,14 +49,28 @@ class LCDWidget(gtk.DrawingArea):
         position_dashlet.set_geometry(50, 750, 800, 100)
 
         shiftlights_dashlet = rfactorlcd.ShiftlightsDashlet(self, self.lcd_style)
-        shiftlights_dashlet.set_geometry(00, 0, 1200, 80)
+        shiftlights_dashlet.set_geometry(0, 0, 1200, 80)
+
+        car_dashlet = rfactorlcd.CarDashlet(self, self.lcd_style)
+        car_dashlet.set_geometry(1200 - 400, 900 - 400, 400, 400)
+
+        speedometer_dashlet = rfactorlcd.SpeedometerDashlet(self, self.lcd_style)
+        speedometer_dashlet.set_geometry(100, 100, 400, 400)
 
         # rpm2_dashlet = rfactorlcd.RPM2Dashlet(self, self.lcd_style)
         # rpm2_dashlet.set_geometry(600, 400, 400, 300)
 
-        self.dashlets = [rpm_dashlet, speed_dashlet, temp_dashlet,
-                         sector_dashlet, laptime_dashlet, position_dashlet,
-                         shiftlights_dashlet]
+        self.dashlets = [
+            speedometer_dashlet,
+            # rpm_dashlet,
+            speed_dashlet,
+            temp_dashlet,
+            # sector_dashlet,
+            laptime_dashlet,
+            position_dashlet,
+            shiftlights_dashlet,
+            car_dashlet
+        ]
 
         self.active_dashlet = None
         self.drag_dashlet = None

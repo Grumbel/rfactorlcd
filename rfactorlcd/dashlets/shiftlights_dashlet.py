@@ -50,9 +50,14 @@ class ShiftlightsDashlet(rfactorlcd.Dashlet):
         r = self.h/2 * 0.8
         for i in range(0, n):
             cr.new_path()
-            cr.arc((i+0.5) * self.w / n,
-                   self.h/2, r,
-                   0, 2 * math.pi)
+
+            if False:
+                cr.arc((i+0.5) * self.w / n,
+                       self.h/2, r,
+                       0, 2 * math.pi)
+            else:
+                cr.rectangle((i+0.5) * self.w / n - r, self.h/2 - r,
+                             r*2, r*2)
 
             p = ((i+1.0) / n)
             if p * 0.9 > (rpm_p - 0.5) * 2:

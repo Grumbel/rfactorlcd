@@ -20,20 +20,23 @@ from .style import Style
 from .state import rFactorState
 from .lcd_widget import LCDWidget
 from .dashlets.dashlet import Dashlet
-from .dashlets.temp_dashlet import TempDashlet
-from .dashlets.rpm_dashlet import RPMDashlet
-from .dashlets.rpm2_dashlet import RPM2Dashlet
-from .dashlets.speed_dashlet import SpeedDashlet
-from .dashlets.sector_dashlet import SectorDashlet
+from .dashlets.car_dashlet import CarDashlet
 from .dashlets.laptime_dashlet import LaptimeDashlet
 from .dashlets.position_dashlet import PositionDashlet
+from .dashlets.rpm2_dashlet import RPM2Dashlet
+from .dashlets.rpm_dashlet import RPMDashlet
+from .dashlets.sector_dashlet import SectorDashlet
 from .dashlets.shiftlights_dashlet import ShiftlightsDashlet
+from .dashlets.speed_dashlet import SpeedDashlet
+from .dashlets.temp_dashlet import TempDashlet
+from .dashlets.speedometer_dashlet import SpeedometerDashlet
 
 
 __all__ = ["App", "Style", "rFactorState", "LCDWidget",
            "Dashlet", "RPMDashlet", "TempDashlet", "SpeedDashlet",
            "SectorDashlet", "LaptimeDashlet", "PositionDashlet",
-           "RPM2Dashlet", "ShiftlightsDashlet"]
+           "RPM2Dashlet", "ShiftlightsDashlet", "CarDashlet",
+           "SpeedometerDashlet"]
 
 
 
