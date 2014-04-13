@@ -33,13 +33,15 @@ from .dashlets.shiftlights_dashlet import ShiftlightsDashlet
 from .dashlets.speed_dashlet import SpeedDashlet
 from .dashlets.speedometer_dashlet import SpeedometerDashlet
 from .dashlets.temp_dashlet import TempDashlet
+from .dashlets.pedals_dashlet import PedalsDashlet
 
 
 __all__ = ["App", "Style", "rFactorState", "LCDWidget", "Workspace",
            "Dashlet", "RPMDashlet", "TempDashlet", "SpeedDashlet",
            "SectorDashlet", "LaptimeDashlet", "PositionDashlet",
            "RPM2Dashlet", "ShiftlightsDashlet", "CarDashlet",
-           "SpeedometerDashlet", "BinaryDecoder"]
+           "SpeedometerDashlet", "PedalsDashlet"
+           "BinaryDecoder"]
 
 
 

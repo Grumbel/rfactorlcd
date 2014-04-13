@@ -69,7 +69,7 @@ class LCDWidget(gtk.DrawingArea):
         for item in ["RPMDashlet", "TempDashlet", "SpeedDashlet",
                      "SectorDashlet", "LaptimeDashlet", "PositionDashlet",
                      "RPM2Dashlet", "ShiftlightsDashlet", "CarDashlet",
-                     "SpeedometerDashlet"]:
+                     "SpeedometerDashlet", "PedalsDashlet"]:
             menu_item = gtk.MenuItem("Add %s" % item)
             self.menu.append(menu_item)
             menu_item.connect("activate", lambda arg, item=item: self.on_menu_item(arg, item))
