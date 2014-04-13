@@ -64,7 +64,7 @@ class Dashlet(object):
         if h is not None:
             self.h = h
 
-        self.reshape(x, y, w, h)
+        self.reshape(self.x, self.y, self.w, self.h)
         self.needs_redraw = True
 
     def reshape(self, x, y, w, h):
