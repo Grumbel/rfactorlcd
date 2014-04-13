@@ -28,8 +28,8 @@ class RPMDashlet(rfactorlcd.Dashlet):
         self.inner_r = 250.0
         self.outer_r = 300.0
 
-        self.start = 90
-        self.end = 360
+        self.start_angle = 90
+        self.end_angle = 360
 
         self.rpm = 0
         self.max_rpm = 5000
@@ -71,28 +71,39 @@ class RPMDashlet(rfactorlcd.Dashlet):
         self.draw_gear(cr)
 
     def draw_needle(self, cr):
-        if self.max_rpm != 0:
-            cr.save()
-            rpm_p = self.rpm / self.max_rpm
+        p = self.rpm / self.max_rpm
 
-            cr.rotate(math.radians(self.start + (self.end - self.start - 1) * (rpm_p)))
-            cr.arc(0, 0, 20, math.pi/2, math.pi + math.pi/2)
-            cr.line_to(self.outer_r * 1.05, -2)
-            cr.line_to(self.outer_r * 1.05, 2)
-            cr.close_path()
+        cr.save()
+        cr.rotate(math.radians(self.start_angle + (self.end_angle - self.start_angle - 1) * p))
 
-            cr.set_source_rgb(*self.lcd_style.highlight_color)
-            cr.fill_preserve()
+        cr.new_path()
+        cr.arc(0, 0, 10, math.pi/2, math.pi + math.pi/2)
+        cr.line_to(self.outer_r, -2)
+        cr.line_to(self.outer_r, 2)
+        cr.close_path()
 
-            cr.set_source_rgb(*self.lcd_style.highlight_dim_color)
-            cr.stroke()
-            cr.restore()
+        cr.set_source_rgb(*self.lcd_style.highlight_color)
+        cr.fill_preserve()
+
+        cr.set_source_rgb(*self.lcd_style.highlight_dim_color)
+        cr.set_line_width(4.0)
+        cr.stroke()
+        cr.restore()
+
+        cr.new_path()
+        cr.set_source_rgb(*self.lcd_style.foreground_color)
+        cr.set_line_width(4.0)
+        cr.arc(0, 0, self.outer_r / 10.0, 0, 2*math.pi)
+        cr.fill_preserve()
+        cr.set_source_rgb(*self.lcd_style.shadow_color)
+        cr.stroke()
+        cr.close_path()
 
     def draw_background(self, cr):
         cr.move_to(0, 0)
-        for deg in range(self.start, self.end + 1, 10):  # int((end - start) / int((max_rpm + 500)/1000))):
+        for deg in range(self.start_angle, self.end_angle + 1, 10):  # int((end - start) / int((max_rpm + 500)/1000))):
             rad = math.radians(deg)
-            if False:
+            if True:
                 x = math.sin(rad)
                 y = math.cos(rad)
 
