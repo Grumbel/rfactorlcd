@@ -69,6 +69,14 @@ class LCDWidget(gtk.DrawingArea):
             self.active_dashlet = None
             self.queue_draw()
 
+        elif event.keyval == gtk.keysyms.Page_Up:
+            self.workspace.raise_dashlet(self.active_dashlet)
+            self.queue_draw()
+
+        elif event.keyval == gtk.keysyms.Page_Down:
+            self.workspace.lower_dashlet(self.active_dashlet)
+            self.queue_draw()
+
     def on_button_press(self, widget, event):
         # print "press", event.x, event.y, event.button
         if event.button == 1:

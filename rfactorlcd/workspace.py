@@ -35,8 +35,27 @@ class Workspace(object):
                 return dashlet
         return None
 
+    def find_dashlets(self, x, y, w, h):
+        return [dashlet for dashlet in self.dashlets if
+                dashlet.x >= x and dashlet.y >= y and
+                dashlet.x2 < x+w and dashlet.y2 >= y+h]
+
     def remove_dashlet(self, dashlet):
         self.dashlets.remove(dashlet)
+
+    def raise_dashlet(self, dashlet):
+        idx = self.dashlets.index(dashlet)
+        for i in range(idx + 1, len(self.dashlets)):
+            self.dashlets[i], self.dashlets[i-1] = self.dashlets[i-1], self.dashlets[i]
+            if self.dashlets[i-1].overlaps(self.dashlets[i]):
+                break
+
+    def lower_dashlet(self, dashlet):
+        idx = self.dashlets.index(dashlet)
+        for i in range(idx - 1, -1, -1):
+            self.dashlets[i], self.dashlets[i+1] = self.dashlets[i+1], self.dashlets[i]
+            if self.dashlets[i+1].overlaps(self.dashlets[i]):
+                break
 
     def draw(self, cr):
         for dashlet in self.dashlets:

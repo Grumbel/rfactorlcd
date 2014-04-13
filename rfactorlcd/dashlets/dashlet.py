@@ -42,6 +42,12 @@ class Dashlet(object):
     def y2(self):
         return self.y + self.h
 
+    def overlaps(self, other):
+        return not (self.x2 < other.x or
+                    self.y2 < other.y or
+                    self.x >= other.x2 or
+                    self.y >= other.y2)
+
     def queue_draw(self):
         self.needs_redraw = True
 
