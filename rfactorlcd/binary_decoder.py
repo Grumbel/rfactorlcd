@@ -28,29 +28,34 @@ class BinaryDecoder:
         return len(self.data)
 
     def read_string(self):
-        len = struct.unpack_from("B", self.data, self.offset)
+        len = struct.unpack_from("B", self.data, self.offset)[0]
         self.offset += 1
         v = struct.unpack_from("%ds" % len, self.data, self.offset)
         self.offset += len
         return v
 
     def read_char(self):
-        v = struct.unpack_from("B", self.data, self.offset)
+        v = struct.unpack_from("B", self.data, self.offset)[0]
         self.offset += 1
         return v
 
+    def read_multi_char(self, n):
+        v = struct.unpack_from("B" * n, self.data, self.offset)
+        self.offset += n
+        return v
+
     def read_short(self):
-        v = struct.unpack_from("h", self.data, self.offset)
+        v = struct.unpack_from("h", self.data, self.offset)[0]
         self.offset += 2
         return v
 
     def read_int(self):
-        v = struct.unpack_from("i", self.data, self.offset)
+        v = struct.unpack_from("i", self.data, self.offset)[0]
         self.offset += 4
         return v
 
     def read_float(self):
-        v = struct.unpack_from("f", self.data, self.offset)
+        v = struct.unpack_from("f", self.data, self.offset)[0]
         self.offset += 4
         return v
 
