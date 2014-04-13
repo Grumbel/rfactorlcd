@@ -45,12 +45,24 @@ class Dashlet(object):
     def queue_draw(self):
         self.needs_redraw = True
 
-    def set_geometry(self, x, y, w, h):
-        self.x = x
-        self.y = y
-        self.w = w
-        self.h = h
+    def set_geometry(self, x=None, y=None, w=None, h=None):
+        if x is not None:
+            self.x = x
+
+        if y is not None:
+            self.y = y
+
+        if w is not None:
+            self.w = w
+
+        if h is not None:
+            self.h = h
+
+        self.reshape(x, y, w, h)
         self.needs_redraw = True
+
+    def reshape(self, x, y, w, h):
+        pass
 
     def update_state(self, state):
         raise NotImplementedError()

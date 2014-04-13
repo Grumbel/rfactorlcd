@@ -35,9 +35,7 @@ class RPMDashlet(rfactorlcd.Dashlet):
         self.max_rpm = 5000
         self.gear = 0
 
-    def set_geometry(self, x, y, w, h):
-        super(RPMDashlet, self).set_geometry(x, y, w, h)
-
+    def reshape(self, x, y, w, h):
         max_radius = min(w, h) / 2
 
         self.inner_r = max_radius * 0.8

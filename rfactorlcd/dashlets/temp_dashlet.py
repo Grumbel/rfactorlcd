@@ -27,8 +27,7 @@ class TempDashlet(rfactorlcd.Dashlet):
         self.fuel = 0
         self.font_size = 20
 
-    def set_geometry(self, x, y, w, h):
-        super(TempDashlet, self).set_geometry(x, y, w, h)
+    def reshape(self, x, y, w, h):
         self.font_size = self.h / 3
 
     def update_state(self, state):

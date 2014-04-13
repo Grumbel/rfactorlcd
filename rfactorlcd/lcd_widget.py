@@ -22,6 +22,14 @@ import random
 import rfactorlcd
 
 
+class DragMode:
+    Move = 0
+    ResizeLeft = 1 << 0
+    ResizeRight = 1 << 1
+    ResizeTop = 1 << 2
+    ResizeBottom = 1 << 3
+
+
 class LCDWidget(gtk.DrawingArea):
 
     def __init__(self):
@@ -56,7 +64,21 @@ class LCDWidget(gtk.DrawingArea):
         if event.button == 1:
             self.drag_dashlet = self.active_dashlet
             if self.drag_dashlet:
-                self.drag_dashlet_origin = (self.drag_dashlet.x, self.drag_dashlet.y)
+                self.drag_dashlet_origin = (self.drag_dashlet.x, self.drag_dashlet.y,
+                                            self.drag_dashlet.w, self.drag_dashlet.h)
+
+                self.drag_mode = DragMode.Move
+                border = 20
+                if self.drag_dashlet.x + border > event.x:
+                    self.drag_mode |= DragMode.ResizeLeft
+                elif self.drag_dashlet.x2 - border < event.x:
+                    self.drag_mode |= DragMode.ResizeRight
+
+                if self.drag_dashlet.y + border > event.y:
+                    self.drag_mode |= DragMode.ResizeTop
+                elif self.drag_dashlet.y2 - border < event.y:
+                    self.drag_mode |= DragMode.ResizeBottom
+
                 self.drag_start = (event.x, event.y)
 
     def on_button_release(self, widget, event):
@@ -69,8 +91,24 @@ class LCDWidget(gtk.DrawingArea):
             x = event.x - self.drag_start[0]
             y = event.y - self.drag_start[1]
 
-            self.drag_dashlet.x = self.drag_dashlet_origin[0] + x
-            self.drag_dashlet.y = self.drag_dashlet_origin[1] + y
+            if self.drag_mode == DragMode.Move:
+                self.drag_dashlet.set_geometry(self.drag_dashlet_origin[0] + x,
+                                               self.drag_dashlet_origin[1] + y)
+
+            print self.drag_mode
+            if self.drag_mode & DragMode.ResizeLeft:
+                self.drag_dashlet.set_geometry(x=self.drag_dashlet_origin[0] + x,
+                                               w=self.drag_dashlet_origin[2] - x)
+
+            if self.drag_mode & DragMode.ResizeRight:
+                self.drag_dashlet.set_geometry(w=self.drag_dashlet_origin[2] + x)
+
+            if self.drag_mode & DragMode.ResizeTop:
+                self.drag_dashlet.set_geometry(y=self.drag_dashlet_origin[1] + y,
+                                               h=self.drag_dashlet_origin[3] - y)
+
+            if self.drag_mode & DragMode.ResizeBottom:
+                self.drag_dashlet.set_geometry(h=self.drag_dashlet_origin[3] + y)
 
             self.queue_draw()
         else:
@@ -110,6 +148,21 @@ class LCDWidget(gtk.DrawingArea):
             self.workspace.draw(cr)
 
             if self.active_dashlet:
+                border = 20
+                cr.set_line_width(4.0)
+                cr.set_source_rgb(*self.lcd_style.shadow_color)
+                cr.rectangle(self.active_dashlet.x, self.active_dashlet.y,
+                             border, self.active_dashlet.h)
+                cr.rectangle(self.active_dashlet.x + self.active_dashlet.w - border, self.active_dashlet.y,
+                             border, self.active_dashlet.h)
+
+                cr.rectangle(self.active_dashlet.x, self.active_dashlet.y,
+                             self.active_dashlet.w, border)
+                cr.rectangle(self.active_dashlet.x, self.active_dashlet.y + self.active_dashlet.h - border,
+                             self.active_dashlet.w, border)
+                cr.stroke()
+
+                cr.set_line_width(6.0)
                 cr.set_source_rgb(*self.lcd_style.highlight_color)
                 cr.rectangle(self.active_dashlet.x, self.active_dashlet.y,
                              self.active_dashlet.w, self.active_dashlet.h)

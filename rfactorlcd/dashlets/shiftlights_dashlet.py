@@ -28,8 +28,8 @@ class ShiftlightsDashlet(rfactorlcd.Dashlet):
         self.rpm = 0
         self.max_rpm = 0
 
-    def set_geometry(self, x, y, w, h):
-        super(ShiftlightsDashlet, self).set_geometry(x, y, w, h)
+    def reshape(self, x, y, w, h):
+        pass
 
     def update_state(self, state):
         if self.rpm != state.rpm or \

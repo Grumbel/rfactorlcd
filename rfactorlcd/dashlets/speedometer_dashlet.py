@@ -35,9 +35,7 @@ class SpeedometerDashlet(rfactorlcd.Dashlet):
 
         self.speed = 0
 
-    def set_geometry(self, x, y, w, h):
-        super(SpeedometerDashlet, self).set_geometry(x, y, w, h)
-
+    def reshape(self, x, y, w, h):
         r = min(self.w, self.h) / 2
         self.inner_r = r * 0.8
         self.outer_r = r * 0.95

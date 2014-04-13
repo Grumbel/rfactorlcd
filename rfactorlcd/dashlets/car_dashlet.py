@@ -23,8 +23,8 @@ class CarDashlet(rfactorlcd.Dashlet):
     def __init__(self, *args):
         super(CarDashlet, self).__init__(*args)
 
-    def set_geometry(self, x, y, w, h):
-        super(CarDashlet, self).set_geometry(x, y, w, h)
+    def reshape(self, x, y, w, h):
+        pass
 
     def update_state(self, state):
         pass  # self.queue_draw()
