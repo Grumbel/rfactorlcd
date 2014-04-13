@@ -124,7 +124,6 @@ class RPMDashlet(rfactorlcd.Dashlet):
 
     def draw_background(self, cr):
         cr.move_to(0, 0)
-        # for deg in range(self.start_angle, self.end_angle + 1, 10):  # int((end - start) / int((dmax_rpm + 500)/1000))):
 
         cr.set_line_width(6.0)
         cr.set_source_rgb(*self.lcd_style.shadow_color)
@@ -141,6 +140,19 @@ class RPMDashlet(rfactorlcd.Dashlet):
             cr.line_to(x * self.outer_r * 0.95,
                        y * self.outer_r * 0.95)
             cr.stroke()
+
+        # draw max_rpm needle
+        cr.set_line_width(6.0)
+        cr.set_source_rgb(*self.lcd_style.highlight_dim_color)
+        p = self.max_rpm / float(self.dmax_rpm)
+        deg = self.start_angle + (self.end_angle - self.start_angle) * p
+        rad = math.radians(deg)
+        x = math.cos(rad)
+        y = math.sin(rad)
+        cr.move_to(0, 0)
+        cr.line_to(x * self.outer_r,
+                   y * self.outer_r)
+        cr.stroke()
 
         cr.set_line_width(8.0)
         cr.set_source_rgb(*self.lcd_style.foreground_color)
