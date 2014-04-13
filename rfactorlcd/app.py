@@ -68,7 +68,7 @@ class App(object):
         self.lcd = None
         self.fullscreen_active = False
         self.window = None
-        self.black_on_white = False
+        self.black_on_white = True
         self.quit = False
         self.host = None
         self.port = None

@@ -160,7 +160,7 @@ class Workspace(object):
 
         self.dashlets = [
             speedometer_dashlet,
-            # rpm_dashlet,
+            rpm_dashlet,
             speed_dashlet,
             temp_dashlet,
             # sector_dashlet,
