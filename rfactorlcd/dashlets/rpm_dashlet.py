@@ -16,6 +16,7 @@
 
 
 import math
+import cairo
 
 import rfactorlcd
 
@@ -25,6 +26,8 @@ class RPMDashlet(rfactorlcd.Dashlet):
     def __init__(self, *args):
         super(RPMDashlet, self).__init__(*args)
 
+        self.background = None
+
         self.inner_r = 250.0
         self.outer_r = 300.0
 
@@ -32,7 +35,7 @@ class RPMDashlet(rfactorlcd.Dashlet):
         self.end_angle = 360
 
         self.rpm = 0
-        self.max_rpm = 5000
+        self.max_rpm = 10000
         self.gear = 0
 
     def reshape(self, x, y, w, h):
@@ -53,18 +56,35 @@ class RPMDashlet(rfactorlcd.Dashlet):
             self.queue_draw()
 
     def draw(self, cr):
+        # drawing background to an offscreen buffer so it doesn't have
+        # to be regenerated each time
+        if not self.background or \
+           self.background.get_width() != self.w or \
+           self.background.get_height() != self.h:
+
+            self.background = cr.get_target().create_similar(cairo.CONTENT_COLOR, int(self.w), int(self.h))
+            surf_cr = cairo.Context(self.background)
+
+            surf_cr.set_source_rgb(*self.lcd_style.background_color)
+            surf_cr.paint()
+
+            surf_cr.save()
+            surf_cr.translate(self.w/2, self.h/2)
+            self.draw_background(surf_cr)
+            surf_cr.restore()
+
+        cr.set_source_surface(self.background)
+        cr.paint()
+
         cr.save()
         cr.translate(self.w/2, self.h/2)
         cr.set_source_rgb(*self.lcd_style.foreground_color)
 
         # display the rpm/max_rpm
         cr.set_font_size(self.outer_r/6)
-        cr.move_to(-self.outer_r/2, -self.outer_r/2)
+        cr.move_to(-self.outer_r/2 + 30, -self.outer_r/2 + 30)
         cr.show_text("%6d" % self.rpm)
-        cr.move_to(-self.outer_r/2, -self.outer_r/3)
-        cr.show_text("%6d" % self.max_rpm)
 
-        self.draw_background(cr)
         self.draw_needle(cr)
         cr.restore()
 
@@ -101,11 +121,33 @@ class RPMDashlet(rfactorlcd.Dashlet):
 
     def draw_background(self, cr):
         cr.move_to(0, 0)
-        for deg in range(self.start_angle, self.end_angle + 1, 10):  # int((end - start) / int((max_rpm + 500)/1000))):
+        # for deg in range(self.start_angle, self.end_angle + 1, 10):  # int((end - start) / int((max_rpm + 500)/1000))):
+
+        cr.set_line_width(6.0)
+        cr.set_source_rgb(*self.lcd_style.shadow_color)
+        for rpm in range(0, self.max_rpm+1, 200):
+            p = rpm / float(self.max_rpm)
+            deg = self.start_angle + (self.end_angle - self.start_angle) * p
+            rad = math.radians(deg)
+
+            x = math.cos(rad)
+            y = math.sin(rad)
+
+            cr.move_to(x * self.inner_r * 1.05,
+                       y * self.inner_r * 1.05)
+            cr.line_to(x * self.outer_r * 0.95,
+                       y * self.outer_r * 0.95)
+            cr.stroke()
+
+        cr.set_line_width(8.0)
+        cr.set_source_rgb(*self.lcd_style.foreground_color)
+        for rpm in range(0, self.max_rpm+1, 1000):
+            p = rpm / float(self.max_rpm)
+            deg = self.start_angle + (self.end_angle - self.start_angle) * p
             rad = math.radians(deg)
             if True:
-                x = math.sin(rad)
-                y = math.cos(rad)
+                x = math.cos(rad)
+                y = math.sin(rad)
 
                 cr.move_to(x * self.inner_r,
                            y * self.inner_r)
@@ -119,6 +161,14 @@ class RPMDashlet(rfactorlcd.Dashlet):
                 cr.close_path()
                 cr.set_source_rgb(*self.lcd_style.shadow_color)
                 cr.fill()
+
+            cr.set_font_size(30)
+            txt = "%d" % (rpm / 1000)
+            x_bearing, y_bearing, width, height, x_advance, y_advance = cr.text_extents(txt)
+            cr.move_to(x * self.inner_r * 0.9 - width/2
+                       - self.w/100.0,  # random beauty offset
+                       y * self.inner_r * 0.9 + height/2)
+            cr.show_text(txt)
 
     def draw_gear(self, cr):
         cr.set_source_rgb(*self.lcd_style.foreground_color)
