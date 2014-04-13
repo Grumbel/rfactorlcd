@@ -54,6 +54,8 @@ class RPMDashlet(rfactorlcd.Dashlet):
             self.gear = state.gear
             if self.max_rpm != state.max_rpm:
                 self.max_rpm = state.max_rpm
+                if self.max_rpm == 0:
+                    self.max_rpm = 1000
                 self.dmax_rpm = int(self.max_rpm + 999) / 1000 * 1000
                 self.background = None
             self.queue_draw()
