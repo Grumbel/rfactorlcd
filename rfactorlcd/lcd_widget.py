@@ -50,17 +50,27 @@ class LCDWidget(gtk.DrawingArea):
 
         self.set_events(gtk.gdk.EXPOSURE_MASK
                         | gtk.gdk.LEAVE_NOTIFY_MASK
+                        | gtk.gdk.KEY_PRESS_MASK
+                        | gtk.gdk.KEY_RELEASE_MASK
                         | gtk.gdk.BUTTON_PRESS_MASK
                         | gtk.gdk.BUTTON_RELEASE_MASK
                         | gtk.gdk.POINTER_MOTION_MASK
                         | gtk.gdk.POINTER_MOTION_HINT_MASK)
 
+        self.set_can_focus(True)
         self.connect("motion_notify_event", self.on_motion_notify)
         self.connect("button_press_event", self.on_button_press)
         self.connect("button_release_event", self.on_button_release)
+        self.connect("key_press_event", self.on_key_press)
+
+    def on_key_press(self, widget, event):
+        if event.keyval == gtk.keysyms.Delete:
+            self.workspace.remove_dashlet(self.active_dashlet)
+            self.active_dashlet = None
+            self.queue_draw()
 
     def on_button_press(self, widget, event):
-        print "press", event.x, event.y, event.button
+        # print "press", event.x, event.y, event.button
         if event.button == 1:
             self.drag_dashlet = self.active_dashlet
             if self.drag_dashlet:
@@ -95,7 +105,6 @@ class LCDWidget(gtk.DrawingArea):
                 self.drag_dashlet.set_geometry(self.drag_dashlet_origin[0] + x,
                                                self.drag_dashlet_origin[1] + y)
 
-            print self.drag_mode
             if self.drag_mode & DragMode.ResizeLeft:
                 self.drag_dashlet.set_geometry(x=self.drag_dashlet_origin[0] + x,
                                                w=self.drag_dashlet_origin[2] - x)

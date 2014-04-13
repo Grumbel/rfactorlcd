@@ -35,6 +35,9 @@ class Workspace(object):
                 return dashlet
         return None
 
+    def remove_dashlet(self, dashlet):
+        self.dashlets.remove(dashlet)
+
     def draw(self, cr):
         for dashlet in self.dashlets:
             cr.save()
