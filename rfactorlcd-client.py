@@ -82,61 +82,60 @@ class rFactorLCDClient(object):
 
     def on_vehicle(self, msg):
         print "[vehicle]"
-        num_vehicles = msg.read_msg.read_int()
+        num_vehicles = msg.read_int()
         print "info.mNumVehicles", num_vehicles
 
         for i in range(0, num_vehicles):
-            print "veh.mIsPlayer", msg.read_msg.read_char()
-            print "veh.mDriverName", msg.read_msg.read_string()
-            print "veh.mVehicleName", msg.read_msg.read_string()
-            print "veh.mVehicleClass", msg.read_msg.read_string()
-            print "veh.mTotalLaps", msg.read_msg.read_short()
+            print "veh.mIsPlayer", msg.read_char()
+            print "veh.mDriverName", msg.read_string()
+            print "veh.mVehicleName", msg.read_string()
+            print "veh.mVehicleClass", msg.read_string()
+            print "veh.mTotalLaps", msg.read_short()
 
-            print "veh.mInPits", msg.read_msg.read_char()
-            print "veh.mPlace", msg.read_msg.read_char()
-            print "veh.mTimeBehindNext", msg.read_msg.read_float()
-            print "veh.mLapsBehindNext", msg.read_msg.read_int()
-            print "veh.mTimeBehindLeader", msg.read_msg.read_float()
-            print "veh.mLapsBehindLeader", msg.read_msg.read_int()
+            print "veh.mInPits", msg.read_char()
+            print "veh.mPlace", msg.read_char()
+            print "veh.mTimeBehindNext", msg.read_float()
+            print "veh.mLapsBehindNext", msg.read_int()
+            print "veh.mTimeBehindLeader", msg.read_float()
+            print "veh.mLapsBehindLeader", msg.read_int()
 
-            print "veh.mBestSector1", msg.read_msg.read_float()
-            print "veh.mBestSector2", msg.read_msg.read_float()
-            print "veh.mBestLapTime", msg.read_msg.read_float()
-            print "veh.mLastSector1", msg.read_msg.read_float()
-            print "veh.mLastSector2", msg.read_msg.read_float()
-            print "veh.mLastLapTime", msg.read_msg.read_float()
-            print "veh.mCurSector1", msg.read_msg.read_float()
-            print "veh.mCurSector2", msg.read_msg.read_float()
+            print "veh.mBestSector1", msg.read_float()
+            print "veh.mBestSector2", msg.read_float()
+            print "veh.mBestLapTime", msg.read_float()
+            print "veh.mLastSector1", msg.read_float()
+            print "veh.mLastSector2", msg.read_float()
+            print "veh.mLastLapTime", msg.read_float()
+            print "veh.mCurSector1", msg.read_float()
+            print "veh.mCurSector2", msg.read_float()
 
-            print "veh.mNumPitstops", msg.read_msg.read_short()
-            print "veh.mNumPenalties", msg.read_msg.read_short()
+            print "veh.mNumPitstops", msg.read_short()
+            print "veh.mNumPenalties", msg.read_short()
 
-            print "veh.mLapStartET", msg.read_msg.read_float()
+            print "veh.mLapStartET", msg.read_float()
             print "  ----------------"
 
     def on_score(self, msg):
         print "[score]"
-        print "info.mGamePhase", msg.read_msg.read_char()
-        print "info.mYellowFlagState", msg.read_msg.read_char()
-        print "info.mSectorFlag[0]", msg.read_msg.read_char()
-        print "info.mSectorFlag[1]", msg.read_msg.read_char()
-        print "info.mSectorFlag[2]", msg.read_msg.read_char()
-        print "info.mStartLight", msg.read_msg.read_char()
-        print "info.mNumRedLights", msg.read_msg.read_char()
-        print "info.mSession", msg.read_msg.read_int()
-        print "info.mCurrentET", msg.read_msg.read_float()
-        print "info.mAmbientTemp", msg.read_msg.read_float()
-        print "info.mTrackTemp", msg.read_msg.read_float()
+        print "info.mGamePhase", msg.read_char()
+        print "info.mYellowFlagState", msg.read_char()
+        print "info.mSectorFlag[0]", msg.read_char()
+        print "info.mSectorFlag[1]", msg.read_char()
+        print "info.mSectorFlag[2]", msg.read_char()
+        print "info.mStartLight", msg.read_char()
+        print "info.mNumRedLights", msg.read_char()
+        print "info.mSession", msg.read_int()
+        print "info.mCurrentET", msg.read_float()
+        print "info.mAmbientTemp", msg.read_float()
+        print "info.mTrackTemp", msg.read_float()
 
     def on_info(self, msg):
         print "[info]"
-        print "info.mTrackName", msg.read_msg.read_string()
-        print "info.mPlayerName", msg.read_msg.read_string()
-        print "info.mPlrFileName", msg.read_msg.read_string()
-        print "info.mEndET", msg.read_msg.read_float()
-        print "info.mMaxLaps", msg.read_msg.read_int()
-        print "info.mLapDist", msg.read_msg.read_float()
-        print "info.mNumVehicles", msg.read_msg.read_int()
+        print "info.mTrackName", msg.read_string()
+        print "info.mPlayerName", msg.read_string()
+        print "info.mPlrFileName", msg.read_string()
+        print "info.mEndET", msg.read_float()
+        print "info.mMaxLaps", msg.read_int()
+        print "info.mLapDist", msg.read_float()
 
     def dispatch_message(self, tag, payload):
         # print tag, size
@@ -152,7 +151,7 @@ class rFactorLCDClient(object):
             self.on_end_realtime(msg)
         elif tag == "VHCL":
             self.on_vehicle(msg)
-        elif tag == "TLTR":
+        elif tag == "TLMT":
             self.on_telemetry(msg)
         elif tag == "SCOR":
             self.on_score(msg)
