@@ -30,7 +30,7 @@ class BinaryDecoder:
     def read_string(self):
         len = struct.unpack_from("B", self.data, self.offset)[0]
         self.offset += 1
-        v = struct.unpack_from("%ds" % len, self.data, self.offset)
+        v = struct.unpack_from("%ds" % len, self.data, self.offset)[0]
         self.offset += len
         return v
 
