@@ -28,6 +28,8 @@ class ShiftlightsDashlet(rfactorlcd.Dashlet):
         self.rpm = 0
         self.max_rpm = 0
 
+        self.start_rpm = 5000
+
     def reshape(self, x, y, w, h):
         pass
 
@@ -44,7 +46,7 @@ class ShiftlightsDashlet(rfactorlcd.Dashlet):
         if self.max_rpm == 0:
             rpm_p = 0.0
         else:
-            rpm_p = self.rpm / self.max_rpm
+            rpm_p = max((self.rpm - self.start_rpm) / self.max_rpm, 0.0)
 
         n = 15
         r = self.h/2 * 0.8
@@ -60,7 +62,7 @@ class ShiftlightsDashlet(rfactorlcd.Dashlet):
                              r*2, r*2)
 
             p = ((i+1.0) / n)
-            if p * 0.9 > (rpm_p - 0.5) * 2:
+            if p * 0.95 > rpm_p:
                 cr.set_source_rgb(0.4, 0.4, 0.4)
                 cr.fill_preserve()
                 cr.set_source_rgb(0.2, 0.2, 0.2)
