@@ -1,0 +1,49 @@
+[Dashlet0]
+type = SpeedometerDashlet
+x = 106.0
+y = 122.0
+w = 400.0
+h = 400.0
+
+[Dashlet1]
+type = SpeedDashlet
+x = 212.0
+y = 401.0
+w = 400.0
+h = 100.0
+
+[Dashlet2]
+type = TempDashlet
+x = 705.0
+y = 177.0
+w = 450.0
+h = 150.0
+
+[Dashlet3]
+type = LaptimeDashlet
+x = 50.0
+y = 667.0
+w = 800.0
+h = 50.0
+
+[Dashlet4]
+type = PositionDashlet
+x = 52.0
+y = 731.0
+w = 800.0
+h = 50.0
+
+[Dashlet5]
+type = ShiftlightsDashlet
+x = 0.0
+y = 0.0
+w = 1200.0
+h = 80.0
+
+[Dashlet6]
+type = CarDashlet
+x = 763.0
+y = 473.0
+w = 400.0
+h = 400.0
+

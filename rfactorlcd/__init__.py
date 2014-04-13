@@ -30,9 +30,10 @@ from .dashlets.shiftlights_dashlet import ShiftlightsDashlet
 from .dashlets.speed_dashlet import SpeedDashlet
 from .dashlets.temp_dashlet import TempDashlet
 from .dashlets.speedometer_dashlet import SpeedometerDashlet
+from .workspace import Workspace
 
 
-__all__ = ["App", "Style", "rFactorState", "LCDWidget",
+__all__ = ["App", "Style", "rFactorState", "LCDWidget", "Workspace",
            "Dashlet", "RPMDashlet", "TempDashlet", "SpeedDashlet",
            "SectorDashlet", "LaptimeDashlet", "PositionDashlet",
            "RPM2Dashlet", "ShiftlightsDashlet", "CarDashlet",

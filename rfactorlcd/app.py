@@ -124,6 +124,13 @@ class App(object):
             self.lcd.set_lcd_style(rfactorlcd.Style.black_on_white())
             self.lcd.queue_draw()
 
+    def on_load(self, *args):
+        self.lcd.workspace.load("/tmp/testomat.rflcd")
+        self.lcd.queue_draw()
+
+    def on_save(self, *args):
+        self.lcd.workspace.save("/tmp/testomat.rflcd")
+
     def create_accelgroup(self):
         accelgroup = gtk.AccelGroup()
 
@@ -145,6 +152,18 @@ class App(object):
                                  gtk.ACCEL_VISIBLE,
                                  self.on_toggle_style)
 
+        key, modifier = gtk.accelerator_parse('F5')
+        accelgroup.connect_group(key,
+                                 modifier,
+                                 gtk.ACCEL_VISIBLE,
+                                 self.on_load)
+
+        key, modifier = gtk.accelerator_parse('F6')
+        accelgroup.connect_group(key,
+                                 modifier,
+                                 gtk.ACCEL_VISIBLE,
+                                 self.on_save)
+
         # key, modifier = gtk.accelerator_parse('space')
         # accelgroup.connect_group(key,
         #                          modifier,
@@ -164,6 +183,8 @@ class App(object):
                             help='HOST to connect to')
         parser.add_argument('PORT', type=int, default=2999, nargs='?',
                             help='PORT to connect to')
+        parser.add_argument("-c", "--config", type=str,
+                            help="Config file to load")
         args = parser.parse_args()
 
         self.host = args.HOST
@@ -175,6 +196,8 @@ class App(object):
         self.window.set_title("rFactor Remote LCD")
         widget = rfactorlcd.LCDWidget()
         self.lcd = widget
+        if args.config:
+            self.lcd.workspace.load(args.config)
         widget.show()
         self.window.add(widget)
         self.window.present()

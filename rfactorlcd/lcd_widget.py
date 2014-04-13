@@ -30,47 +30,9 @@ class LCDWidget(gtk.DrawingArea):
         self.rf_state = rfactorlcd.rFactorState()
         self.lcd_style = rfactorlcd.Style.white_on_black()
 
-        rpm_dashlet = rfactorlcd.RPMDashlet(self, self.lcd_style)
-        rpm_dashlet.set_geometry(100, 100, 300, 300)
-
-        temp_dashlet = rfactorlcd.TempDashlet(self, self.lcd_style)
-        temp_dashlet.set_geometry(700, 250, 450, 250)
-
-        speed_dashlet = rfactorlcd.SpeedDashlet(self, self.lcd_style)
-        speed_dashlet.set_geometry(580, 50, 400, 200)
-
-        sector_dashlet = rfactorlcd.SectorDashlet(self, self.lcd_style)
-        sector_dashlet.set_geometry(800, 550, 300, 300)
-
-        laptime_dashlet = rfactorlcd.LaptimeDashlet(self, self.lcd_style)
-        laptime_dashlet.set_geometry(50, 600, 800, 100)
-
-        position_dashlet = rfactorlcd.PositionDashlet(self, self.lcd_style)
-        position_dashlet.set_geometry(50, 750, 800, 100)
-
-        shiftlights_dashlet = rfactorlcd.ShiftlightsDashlet(self, self.lcd_style)
-        shiftlights_dashlet.set_geometry(0, 0, 1200, 80)
-
-        car_dashlet = rfactorlcd.CarDashlet(self, self.lcd_style)
-        car_dashlet.set_geometry(1200 - 400, 900 - 400, 400, 400)
-
-        speedometer_dashlet = rfactorlcd.SpeedometerDashlet(self, self.lcd_style)
-        speedometer_dashlet.set_geometry(100, 100, 400, 400)
-
-        # rpm2_dashlet = rfactorlcd.RPM2Dashlet(self, self.lcd_style)
-        # rpm2_dashlet.set_geometry(600, 400, 400, 300)
-
-        self.dashlets = [
-            speedometer_dashlet,
-            # rpm_dashlet,
-            speed_dashlet,
-            temp_dashlet,
-            # sector_dashlet,
-            laptime_dashlet,
-            position_dashlet,
-            shiftlights_dashlet,
-            car_dashlet
-        ]
+        self.workspace = rfactorlcd.Workspace()
+        self.workspace.set_lcd_style(self.lcd_style)
+        self.workspace.load_default()
 
         self.active_dashlet = None
         self.drag_dashlet = None
@@ -112,22 +74,14 @@ class LCDWidget(gtk.DrawingArea):
 
             self.queue_draw()
         else:
-            active_dashlet = None
-            for dashlet in self.dashlets:
-                if dashlet.x <= event.x < dashlet.x2 and \
-                   dashlet.y <= event.y < dashlet.y2:
-                    active_dashlet = dashlet
-                    break
-
+            active_dashlet = self.workspace.find_dashlet_at(event.x, event.y)
             if active_dashlet != self.active_dashlet:
                 self.active_dashlet = active_dashlet
                 self.queue_draw()
 
     def set_lcd_style(self, style):
         self.lcd_style = style
-
-        for dashlet in self.dashlets:
-            dashlet.lcd_style = self.lcd_style
+        self.workspace.set_lcd_style(style)
 
     def on_expose_event(self, widget, event):
         if self.window:
@@ -153,27 +107,17 @@ class LCDWidget(gtk.DrawingArea):
                                   random.random())
             cr.paint()
 
-            for dashlet in self.dashlets:
-                cr.save()
-                cr.translate(dashlet.x, dashlet.y)
-                dashlet.draw(cr)
-                cr.restore()
+            self.workspace.draw(cr)
 
-                if dashlet == self.active_dashlet:
-                    cr.set_source_rgb(*self.lcd_style.highlight_color)
-                    cr.rectangle(dashlet.x, dashlet.y,
-                                 dashlet.w, dashlet.h)
-                    cr.stroke()
+            if self.active_dashlet:
+                cr.set_source_rgb(*self.lcd_style.highlight_color)
+                cr.rectangle(self.active_dashlet.x, self.active_dashlet.y,
+                             self.active_dashlet.w, self.active_dashlet.h)
+                cr.stroke()
 
     def update_state(self, state):
         self.rf_state = state
-
-        for dashlet in self.dashlets:
-            dashlet.update_state(state)
-
-            if dashlet.needs_redraw:
-                self.queue_draw_area(int(dashlet.x), int(dashlet.y),
-                                     int(dashlet.w), int(dashlet.h))
+        self.workspace.update_state(self, state)
 
 
 # EOF #
