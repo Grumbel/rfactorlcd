@@ -36,7 +36,7 @@ class LCDWidget(gtk.DrawingArea):
         gtk.DrawingArea.__init__(self)
         self.connect("expose-event", self.on_expose_event)
         self.rf_state = rfactorlcd.rFactorState()
-        self.lcd_style = rfactorlcd.Style.white_on_black()
+        self.lcd_style = rfactorlcd.Style.black_on_white()
 
         self.workspace = rfactorlcd.Workspace()
         self.workspace.set_lcd_style(self.lcd_style)
