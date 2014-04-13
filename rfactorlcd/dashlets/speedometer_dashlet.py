@@ -16,6 +16,7 @@
 
 
 import math
+import cairo
 
 import rfactorlcd
 
@@ -23,6 +24,8 @@ import rfactorlcd
 class SpeedometerDashlet(rfactorlcd.Dashlet):
     def __init__(self, *args):
         super(SpeedometerDashlet, self).__init__(*args)
+
+        self.background = None
 
         self.inner_r = 200
         self.outer_r = 250
@@ -46,9 +49,28 @@ class SpeedometerDashlet(rfactorlcd.Dashlet):
             self.queue_draw()
 
     def draw(self, cr):
+        # drawing background to an offscreen buffer so it doesn't have
+        # to be regenerated each time
+        if not self.background or \
+           self.background.get_width() != self.w or \
+           self.background.get_height() != self.h:
+
+            self.background = cr.get_target().create_similar(cairo.CONTENT_COLOR, int(self.w), int(self.h))
+            surf_cr = cairo.Context(self.background)
+
+            surf_cr.set_source_rgb(*self.lcd_style.background_color)
+            surf_cr.paint()
+
+            surf_cr.save()
+            surf_cr.translate(self.w/2, self.h/2)
+            self.draw_background(surf_cr)
+            surf_cr.restore()
+
+        cr.set_source_surface(self.background)
+        cr.paint()
+
         cr.save()
         cr.translate(self.w/2, self.h/2)
-        self.draw_background(cr)
         self.draw_needle(cr)
         cr.restore()
 
