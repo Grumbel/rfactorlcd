@@ -27,7 +27,7 @@ class CarDashlet(rfactorlcd.Dashlet):
         super(CarDashlet, self).set_geometry(x, y, w, h)
 
     def update_state(self, state):
-        self.queue_draw()
+        pass  # self.queue_draw()
 
     def draw(self, cr):
         car_w = 150
