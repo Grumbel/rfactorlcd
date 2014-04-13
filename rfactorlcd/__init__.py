@@ -16,9 +16,12 @@
 
 
 from .app import App
-from .style import Style
-from .state import rFactorState
+from .binary_decoder import BinaryDecoder
 from .lcd_widget import LCDWidget
+from .state import rFactorState
+from .style import Style
+from .workspace import Workspace
+
 from .dashlets.dashlet import Dashlet
 from .dashlets.car_dashlet import CarDashlet
 from .dashlets.laptime_dashlet import LaptimeDashlet
@@ -28,16 +31,15 @@ from .dashlets.rpm_dashlet import RPMDashlet
 from .dashlets.sector_dashlet import SectorDashlet
 from .dashlets.shiftlights_dashlet import ShiftlightsDashlet
 from .dashlets.speed_dashlet import SpeedDashlet
-from .dashlets.temp_dashlet import TempDashlet
 from .dashlets.speedometer_dashlet import SpeedometerDashlet
-from .workspace import Workspace
+from .dashlets.temp_dashlet import TempDashlet
 
 
 __all__ = ["App", "Style", "rFactorState", "LCDWidget", "Workspace",
            "Dashlet", "RPMDashlet", "TempDashlet", "SpeedDashlet",
            "SectorDashlet", "LaptimeDashlet", "PositionDashlet",
            "RPM2Dashlet", "ShiftlightsDashlet", "CarDashlet",
-           "SpeedometerDashlet"]
+           "SpeedometerDashlet", "BinaryDecoder"]
 
 
 
