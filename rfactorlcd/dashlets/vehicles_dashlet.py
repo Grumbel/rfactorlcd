@@ -18,6 +18,15 @@
 import rfactorlcd
 
 
+def parse_time(v):
+    minutes = int(v / 60)
+    v -= minutes * 60
+    seconds = int(v)
+    v -= seconds
+    mili = int(v * 1000)
+    return (minutes, seconds, mili)
+
+
 class VehiclesDashlet(rfactorlcd.Dashlet):
 
     def __init__(self, *args):
@@ -30,13 +39,17 @@ class VehiclesDashlet(rfactorlcd.Dashlet):
 
     def draw(self, cr):
         if len(self.vehicles) > 0:
-            font_size = self.h / len(self.vehicles)
+            font_size = 25  # self.h / len(self.vehicles)
             y = font_size
             cr.set_font_size(font_size)
-            cr.set_source_rgb(*self.lcd_style.foreground_color)
             for veh in sorted(self.vehicles, lambda a, b: cmp(a.place, b.place)):
-                cr.move_to(0, font_size)
-                cr.show_text("%d %s" % (veh.place, veh.driver_name))
+                if veh.is_player:
+                    cr.set_source_rgb(*self.lcd_style.highlight_color)
+                else:
+                    cr.set_source_rgb(*self.lcd_style.foreground_color)
+
+                cr.move_to(0, veh.place * font_size)
+                cr.show_text("%2d %-20s %2d:%02d:%03d" % ((veh.place, veh.driver_name) + parse_time(veh.last_lap_time)))
                 y += font_size
 
 
