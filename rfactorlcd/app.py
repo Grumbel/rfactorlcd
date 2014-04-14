@@ -76,34 +76,37 @@ class App(object):
         self.sock = None
 
     def update_network(self):
-        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
         time_str = datetime.datetime.now().strftime("%Y-%m-%dT%H%M%S")
         if not os.path.isdir("logs"):
             os.mkdir("logs")
-        with open(os.path.join("logs", time_str + ".log"), "wt") as fout:
-            try:
-                print "Connecting to %s:%s" % (self.host, self.port)
-                self.sock.connect((self.host, self.port))
 
-                state = rfactorlcd.rFactorState()
-                stream = ""
-                while not self.quit:
-                    self.sock.sendall("\n")
-                    stream += self.sock.recv(1024)
-                    if len(stream) >= 8:
-                        tag, size = struct.unpack_from("4sI", stream)
-                        if len(stream) >= size:
-                            # fout.write(stream[0:size])
-                            payload = stream[8:size]
-                            stream = stream[size:]
-                            try:
-                                state.dispatch_message(tag, payload)
-                                glib.idle_add(self.lcd.update_state, state)
-                            except Exception as e:
-                                print "exception:", e
-            finally:
-                self.sock.close()
+        print "writing log to %s" % time_str
+
+        # with open(os.path.join("logs", time_str + ".log"), "wt") as fout:
+
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        try:
+            print "Connecting to %s:%s" % (self.host, self.port)
+            self.sock.connect((self.host, self.port))
+
+            state = rfactorlcd.rFactorState()
+            stream = ""
+            while not self.quit:
+                self.sock.sendall("\n")
+                stream += self.sock.recv(1024)
+                if len(stream) >= 8:
+                    tag, size = struct.unpack_from("4sI", stream)
+                    if len(stream) >= size:
+                        # fout.write(stream[0:size])
+                        payload = stream[8:size]
+                        stream = stream[size:]
+                        try:
+                            state.dispatch_message(tag, payload)
+                            glib.idle_add(self.lcd.update_state, state)
+                        except Exception as e:
+                            print "exception:", e
+        finally:
+            self.sock.close()
 
     def on_quit(self, *args):
         self.quit = True

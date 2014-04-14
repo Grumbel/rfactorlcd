@@ -22,7 +22,7 @@ class PedalsDashlet(rfactorlcd.Dashlet):
 
     def __init__(self, *args):
         super(PedalsDashlet, self).__init__(*args)
-        
+
         self.throttle = 0
         self.brake = 0
         self.clutch = 0
@@ -46,7 +46,7 @@ class PedalsDashlet(rfactorlcd.Dashlet):
 
         cr.set_source_rgb(*self.lcd_style.highlight_color)
         for i, p in enumerate([self.throttle, self.brake, self.clutch]):
-            cr.rectangle(self.w / 3 * i, (1.0 - p) * self.h, 
+            cr.rectangle(self.w / 3 * i, (1.0 - p) * self.h,
                          self.w / 3, p * self.h)
         cr.fill()
 

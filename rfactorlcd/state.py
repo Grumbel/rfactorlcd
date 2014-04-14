@@ -77,6 +77,16 @@ class rFactorState(object):
         return result
 
     def on_telemetry(self, msg):
+        self.pos = msg.read_vect()
+        self.local_vel = msg.read_vect()
+        self.local_accel = msg.read_vect()
+
+        self.ori_x = msg.read_vect()
+        self.ori_y = msg.read_vect()
+        self.ori_z = msg.read_vect()
+        self.local_rot = msg.read_vect()
+        self.local_rot_accel = msg.read_vect()
+
         self.gear = msg.read_int()
         self.rpm = msg.read_float()
         self.max_rpm = msg.read_float()

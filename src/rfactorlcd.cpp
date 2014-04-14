@@ -121,6 +121,12 @@ public:
     d.size += sizeof(v);
   }
 
+  inline void write_vect(const TelemVect3& v)
+  {
+    reinterpret_cast<TelemVect3&>(buffer[d.size]) = v;
+    d.size += sizeof(v);
+  }
+
   inline const char* get_data() const
   {
     return buffer;
@@ -451,6 +457,17 @@ rFactorLCDPlugin::UpdateTelemetry(const TelemInfoV2& info)
   update_winsock();
 
   NetworkMessage msg(TELEMETRY_TAG);
+
+  msg.write_vect(info.mPos);
+  msg.write_vect(info.mLocalVel);
+  msg.write_vect(info.mLocalAccel);
+
+  msg.write_vect(info.mOriX);
+  msg.write_vect(info.mOriY);
+  msg.write_vect(info.mOriZ);
+  msg.write_vect(info.mLocalRot);
+  msg.write_vect(info.mLocalRotAccel);
+
   msg.write_int(info.mGear);
   msg.write_float(info.mEngineRPM);
   msg.write_float(info.mEngineMaxRPM);

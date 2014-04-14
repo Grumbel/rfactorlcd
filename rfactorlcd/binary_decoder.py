@@ -59,6 +59,11 @@ class BinaryDecoder:
         self.offset += 4
         return v
 
+    def read_vect(self):
+        v = struct.unpack_from("fff", self.data, self.offset)
+        self.offset += 4 * 3
+        return v
+
     def read_fmt(self, fmt):
         v = struct.unpack_from(fmt, self.offset)
         self.offset += struct.calcsize(fmt)
