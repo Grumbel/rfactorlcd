@@ -17,7 +17,7 @@
 
 import math
 
-import rfactorlcd.dashlet
+import rfactorlcd
 
 
 class RPM2Dashlet(rfactorlcd.Dashlet):
