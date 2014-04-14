@@ -66,6 +66,11 @@ PluginObjectInfo* __cdecl GetPluginObjectInfo(const unsigned uIndex)
   }
 }
 
+bool is_invalid_socket(const rFactorLCDPlugin::Client& client)
+{
+  return client.m_sock == INVALID_SOCKET;
+}
+
 class NetworkMessage
 {
 private:
@@ -270,7 +275,9 @@ rFactorLCDPlugin::setup_winsock()
 void
 rFactorLCDPlugin::update_winsock()
 {
+  // check if new clients have connected or old ones disconnected
   update_winsock_server();
+
   update_winsock_clients();
 }
 
@@ -316,37 +323,28 @@ rFactorLCDPlugin::update_winsock_clients()
   m_out << "update winsock clients: " << m_client_sockets.size() << std::endl;
   bool needs_cleanup = false;
 
-  for(std::vector<SOCKET>::iterator sock_it = m_client_sockets.begin();
-      sock_it != m_client_sockets.end();
-      ++sock_it)
+  for(std::vector<Client>::iterator client_it = m_client_sockets.begin();
+      client_it != m_client_sockets.end();
+      ++client_it)
   {
-    if (*sock_it != INVALID_SOCKET)
+    SOCKET sock = client_it->m_sock;
+
+    if (sock != INVALID_SOCKET)
     {
       char recvbuf[1024];
 
-      int ret = recv(*sock_it, recvbuf, sizeof(recvbuf), 0);
+      int ret = recv(sock, recvbuf, sizeof(recvbuf), 0);
       if (ret > 0)
       {
         m_out << "bytes received:" << ret << std::endl;
 
-        if (false) // echo server
-        {
-          ret = send(*sock_it, recvbuf, ret, 0);
-          if (ret == SOCKET_ERROR)
-          {
-            m_out << "send failed:" << WSAGetLastError() << std::endl;
-            closesocket(*sock_it);
-            *sock_it = INVALID_SOCKET;
-            needs_cleanup = true;
-          }
-          m_out << "Bytes sent:" << ret << std::endl;
-        }
+        client_it->m_wants_data = kAllData;
       }
       else if (ret == 0)
       {
         m_out << "Connection closing..." << std::endl;
-        closesocket(*sock_it);
-        *sock_it = INVALID_SOCKET;
+        closesocket(sock);
+        sock = INVALID_SOCKET;
         needs_cleanup = true;
       }
       else
@@ -355,8 +353,8 @@ rFactorLCDPlugin::update_winsock_clients()
         if (err != WSAEWOULDBLOCK)
         {
           m_out << "recv failed:" << err << std::endl;
-          closesocket(*sock_it);
-          *sock_it = INVALID_SOCKET;
+          closesocket(sock);
+          sock = INVALID_SOCKET;
           needs_cleanup = true;
         }
       }
@@ -366,8 +364,8 @@ rFactorLCDPlugin::update_winsock_clients()
   m_out << "update winsock clients: cleanup" << std::endl;
   if (needs_cleanup)
   {
-    m_client_sockets.erase(std::remove(m_client_sockets.begin(), m_client_sockets.end(),
-                                       INVALID_SOCKET),
+    m_client_sockets.erase(std::remove_if(m_client_sockets.begin(), m_client_sockets.end(),
+                                          is_invalid_socket),
                            m_client_sockets.end());
   }
 }
@@ -375,19 +373,23 @@ rFactorLCDPlugin::update_winsock_clients()
 void
 rFactorLCDPlugin::send_message(const NetworkMessage& msg)
 {
-  for(std::vector<SOCKET>::iterator sock_it = m_client_sockets.begin();
-      sock_it != m_client_sockets.end();
-      ++sock_it)
+  for(std::vector<Client>::iterator client_it = m_client_sockets.begin();
+      client_it != m_client_sockets.end();
+      ++client_it)
   {
-    if (*sock_it != INVALID_SOCKET)
+    SOCKET sock = client_it->m_sock;
+    if (sock != INVALID_SOCKET)
     {
-      m_out << "network send: " << msg.get_size() << std::endl;
-      int ret = send(*sock_it, msg.get_data(), msg.get_size(), 0);
-      if (ret == SOCKET_ERROR)
+      if (client_it->m_wants_data)
       {
-        m_out << "send failed:" << WSAGetLastError() << std::endl;
-        closesocket(*sock_it);
-        *sock_it = INVALID_SOCKET;
+        m_out << "network send: " << msg.get_size() << std::endl;
+        int ret = send(sock, msg.get_data(), msg.get_size(), 0);
+        if (ret == SOCKET_ERROR)
+        {
+          m_out << "send failed:" << WSAGetLastError() << std::endl;
+          closesocket(sock);
+          sock = INVALID_SOCKET;
+        }
       }
     }
   }
@@ -450,11 +452,42 @@ rFactorLCDPlugin::EndSession()
   send_message(msg);
 }
 
+bool
+rFactorLCDPlugin::clients_wants(unsigned int mask)
+{
+  for(std::vector<Client>::iterator client_it = m_client_sockets.begin();
+      client_it != m_client_sockets.end();
+      ++client_it)
+  {
+    if (client_it->m_wants_data & mask)
+    {
+      return true;
+    }
+  }
+  return false;
+}
+
+void
+rFactorLCDPlugin::clear_clients_mask(unsigned int mask)
+{
+  for(std::vector<Client>::iterator client_it = m_client_sockets.begin();
+      client_it != m_client_sockets.end();
+      ++client_it)
+  {
+    client_it->m_wants_data &= ~mask;
+  }
+}
+
 void
 rFactorLCDPlugin::UpdateTelemetry(const TelemInfoV2& info)
 {
   //m_out << "telemetry" << std::endl;
   update_winsock();
+
+  if (!clients_wants(kTelemetryData))
+  {
+    return;
+  }
 
   NetworkMessage msg(TELEMETRY_TAG);
 
@@ -517,12 +550,19 @@ rFactorLCDPlugin::UpdateTelemetry(const TelemInfoV2& info)
     msg.write_char(wheel.mDetached);
   }
   send_message(msg);
+
+  clear_clients_mask(kTelemetryData);
 }
 
 void
 rFactorLCDPlugin::UpdateScoring(const ScoringInfoV2& info)
 {
-  m_out << "scoring" << std::endl;
+  //m_out << "scoring" << std::endl;
+  update_winsock();
+  if (!clients_wants(kScoreData))
+  {
+    return;
+  }
 
   {
     // data that should be constant across a session
@@ -590,8 +630,7 @@ rFactorLCDPlugin::UpdateScoring(const ScoringInfoV2& info)
   }
   m_out << "scoring sending mgs done" << std::endl;
 
-  update_winsock();
-  m_out << "scoring update winsock done" << std::endl;
+  clear_clients_mask(kScoreData);
 }
 
 /* EOF */

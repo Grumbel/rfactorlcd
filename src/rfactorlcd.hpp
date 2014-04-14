@@ -33,7 +33,6 @@
 
 class NetworkMessage;
 
-
 class rFactorLCDPlugin : public InternalsPluginV3
 {
 private:
@@ -43,7 +42,27 @@ private:
 
   std::ofstream m_out;
   SOCKET m_listen_socket;
-  std::vector<SOCKET> m_client_sockets;
+
+public:
+  enum {
+    kTelemetryData = 1<<0,
+    kScoreData = 1<<1,
+    kAllData = kTelemetryData | kScoreData
+  };
+
+  class Client
+  {
+  public:
+    Client(SOCKET sock) :
+      m_sock(sock),
+      m_wants_data(0)
+    {} 
+    SOCKET m_sock;
+    unsigned int m_wants_data;
+  };
+
+private:
+  std::vector<Client> m_client_sockets;
   
 public:
   rFactorLCDPlugin();
@@ -93,6 +112,8 @@ private:
   void update_winsock_server();
   void update_winsock_clients();
   void shutdown_winsock();
+  bool clients_wants(unsigned int mask);
+  void clear_clients_mask(unsigned int mask);
   void send_message(const NetworkMessage& msg);
 
 private:
