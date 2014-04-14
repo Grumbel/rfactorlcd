@@ -48,8 +48,6 @@ class LCDWidget(gtk.DrawingArea):
 
         self.dashlet_insert_pos = None
 
-        self.update_processed = True
-
         #self.set_events(gtk.MOTION_NOTIFY)
 
         self.set_events(gtk.gdk.EXPOSURE_MASK
@@ -212,10 +210,8 @@ class LCDWidget(gtk.DrawingArea):
                              self.active_dashlet.w, self.active_dashlet.h)
                 cr.stroke()
 
-    def update_state(self, state):
-        self.rf_state = state
-        self.workspace.update_state(self, state)
-        self.update_processed = True
-
+    def update_state(self, tag, payload):
+        self.rf_state.dispatch_message(tag, payload)
+        self.workspace.update_state(self, self.rf_state)
 
 # EOF #

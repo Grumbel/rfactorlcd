@@ -23,7 +23,6 @@ import glib
 import datetime
 import os
 import struct
-import time
 
 import rfactorlcd
 
@@ -75,6 +74,18 @@ class App(object):
         self.host = None
         self.port = None
         self.sock = None
+        self.lock = threading.Lock()
+        self.new_data = {}
+
+    def on_idle(self):
+        self.lock.aquire()
+        for tag, payload in self.new_data:
+            self.lcd.update_state(tag, payload)
+        self.new_data = {}
+        self.lock.release()
+
+        # keep idle loop going
+        return True
 
     def update_network(self):
         time_str = datetime.datetime.now().strftime("%Y-%m-%dT%H%M%S")
@@ -85,17 +96,14 @@ class App(object):
 
         # with open(os.path.join("logs", time_str + ".log"), "wt") as fout:
 
+        glib.idle_add(self.on_idle)
+
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
             print "Connecting to %s:%s" % (self.host, self.port)
             self.sock.connect((self.host, self.port))
-
-            state = rfactorlcd.rFactorState()
             stream = ""
             while not self.quit:
-                while not self.lcd.update_processed:
-                    time.sleep(0)
-
                 self.sock.sendall("\n")
                 stream += self.sock.recv(1024)
                 if len(stream) >= 8:
@@ -104,12 +112,9 @@ class App(object):
                         # fout.write(stream[0:size])
                         payload = stream[8:size]
                         stream = stream[size:]
-                        try:
-                            state.dispatch_message(tag, payload)
-                            self.lcd.update_processed = False
-                            glib.idle_add(self.lcd.update_state, state)
-                        except Exception as e:
-                            print "exception:", e
+                        self.lock.aquire()
+                        self.new_data[tag] = payload
+                        self.lock.release()
         finally:
             self.sock.close()
 
