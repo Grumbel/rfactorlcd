@@ -487,6 +487,10 @@ rFactorLCDPlugin::UpdateTelemetry(const TelemInfoV2& info)
 
   msg.write_float(info.mSteeringArmForce);
 
+  msg.write_char(info.mScheduledStops);
+  msg.write_char(info.mOverheating);
+  msg.write_char(info.mDetached);
+
   for(int i = 0; i < 8; ++i)
   {
     msg.write_char(info.mDentSeverity[i]);

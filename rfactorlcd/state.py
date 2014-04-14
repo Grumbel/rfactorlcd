@@ -77,7 +77,7 @@ class rFactorState(object):
         return result
 
     def on_telemetry(self, msg):
-        self.lap_number = msg.read_int();
+        self.lap_number = msg.read_int()
         self.lap_start_et = msg.read_float()
 
         self.pos = msg.read_vect()
@@ -105,6 +105,10 @@ class rFactorState(object):
         self.clutch = msg.read_float()
 
         self.steering_arm_force = msg.read_float()
+
+        self.scheduled_stops = msg.read_char()
+        self.overheating = msg.read_char()
+        self.detached = msg.read_char()
 
         self.dent_severity = msg.read_multi_char(8)
 
