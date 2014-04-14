@@ -458,6 +458,9 @@ rFactorLCDPlugin::UpdateTelemetry(const TelemInfoV2& info)
 
   NetworkMessage msg(TELEMETRY_TAG);
 
+  msg.write_int(info.mLapNumber);
+  msg.write_float(info.mLapStartET);
+
   msg.write_vect(info.mPos);
   msg.write_vect(info.mLocalVel);
   msg.write_vect(info.mLocalAccel);

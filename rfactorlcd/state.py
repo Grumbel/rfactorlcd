@@ -77,6 +77,9 @@ class rFactorState(object):
         return result
 
     def on_telemetry(self, msg):
+        self.lap_number = msg.read_int();
+        self.lap_start_et = msg.read_float()
+
         self.pos = msg.read_vect()
         self.local_vel = msg.read_vect()
         self.local_accel = msg.read_vect()
