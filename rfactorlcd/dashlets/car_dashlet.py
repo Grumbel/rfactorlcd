@@ -51,9 +51,8 @@ class CarDashlet(rfactorlcd.Dashlet):
 
     def wheel_color(self, wheel, side):
         temp = self.wheels[wheel].temperature[side]
-        return (celsius(temp) / 100.0,
-                celsius(temp) / 100.0,
-                0)
+        p = min(max(0.0, (celsius(temp) - 20) / 80.0), 1.0)
+        return (p, 1.0 - p, 0.0)
 
     def draw(self, cr):
         car_w = 150
@@ -131,6 +130,25 @@ class CarDashlet(rfactorlcd.Dashlet):
                     cr.rectangle(w_x, w_y,
                                  (i+1)*wheel_w/3, wheel_h)
                     cr.fill()
+
+                    cr.set_font_size(12)
+                    cr.set_source_rgb(*self.lcd_style.foreground_color)
+                    cr.move_to(w_x + i * wheel_w/1.5, w_y - 10)
+                    cr.show_text("%3.1f" % celsius(self.wheels[wheel].temperature[i]))
+
+                force = self.wheels[wheel].lateral_force
+                cr.set_source_rgb(*self.lcd_style.highlight_color)
+                cr.rectangle(w_x + wheel_w/2,
+                             w_y + wheel_h/2 - 10,
+                             wheel_w * force/8000.0, 20)
+                cr.fill()
+
+                force = self.wheels[wheel].rotation
+                cr.set_source_rgb(*self.lcd_style.highlight_color)
+                cr.rectangle(w_x + wheel_w/2 - 10,
+                             w_y + wheel_h/2,
+                             20, wheel_h * force/150.0)
+                cr.fill()
 
         cr.restore()
 
