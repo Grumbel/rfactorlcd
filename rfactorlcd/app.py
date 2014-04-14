@@ -92,7 +92,7 @@ class App(object):
             state = rfactorlcd.rFactorState()
             stream = ""
             while not self.quit:
-                self.sock.sendall("\n")
+                # self.sock.sendall("\n")
                 stream += self.sock.recv(1024)
                 if len(stream) >= 8:
                     tag, size = struct.unpack_from("4sI", stream)
@@ -102,7 +102,9 @@ class App(object):
                         stream = stream[size:]
                         try:
                             state.dispatch_message(tag, payload)
-                            glib.idle_add(self.lcd.update_state, state)
+                            if self.lcd.update_processed:
+                                self.lcd.update_processed = False
+                                glib.idle_add(self.lcd.update_state, state)
                         except Exception as e:
                             print "exception:", e
         finally:
