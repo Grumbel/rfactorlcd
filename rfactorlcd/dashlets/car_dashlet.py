@@ -18,16 +18,42 @@
 import rfactorlcd
 
 
+def celsius(kelvin):
+    return kelvin - 273.15
+
+
 class CarDashlet(rfactorlcd.Dashlet):
 
     def __init__(self, *args):
         super(CarDashlet, self).__init__(*args)
+        self.dent_severity = [0, 0, 0, 0, 0, 0, 0, 0]
+        self.wheels = None
 
     def reshape(self, x, y, w, h):
         pass
 
     def update_state(self, state):
-        pass  # self.queue_draw()
+        self.dent_severity = state.dent_severity
+        self.wheels = state.wheels
+        self.queue_draw()
+
+    def dent_color(self, part):
+        severity = self.dent_severity[part]
+
+        if severity == 0:
+            return (0, 1, 0)
+        elif severity == 1:
+            return (1, 1, 0)
+        elif severity == 2:
+            return (1, 0, 0)
+        else:
+            return (1, 1, 1)
+
+    def wheel_color(self, wheel, side):
+        temp = self.wheels[wheel].temperature[side]
+        return (celsius(temp) / 100.0,
+                celsius(temp) / 100.0,
+                0)
 
     def draw(self, cr):
         car_w = 150
@@ -43,42 +69,42 @@ class CarDashlet(rfactorlcd.Dashlet):
         # draw dentable body parts
 
         # front
-        cr.set_source_rgb(*self.lcd_style.highlight_color)
+        cr.set_source_rgb(*self.dent_color(0))
         cr.rectangle(30, -20, car_w - 60, 20)
         cr.fill()
 
         # back
-        cr.set_source_rgb(*self.lcd_style.highlight_color)
+        cr.set_source_rgb(*self.dent_color(1))
         cr.rectangle(30, car_h, car_w - 60, 20)
         cr.fill()
 
         # left side
-        cr.set_source_rgb(*self.lcd_style.highlight_color)
+        cr.set_source_rgb(*self.dent_color(2))
         cr.rectangle(-20, 40, 20, car_h - 80)
         cr.fill()
 
         # right side
-        cr.set_source_rgb(*self.lcd_style.highlight_color)
+        cr.set_source_rgb(*self.dent_color(3))
         cr.rectangle(car_w, 40, 20, car_h - 80)
         cr.fill()
 
         # front/left
-        cr.set_source_rgb(*self.lcd_style.highlight_color)
+        cr.set_source_rgb(*self.dent_color(4))
         cr.rectangle(-20, -20, 60, 80)
         cr.fill()
 
         # front/right
-        cr.set_source_rgb(*self.lcd_style.highlight_color)
+        cr.set_source_rgb(*self.dent_color(5))
         cr.rectangle(car_w-40, -20, 60, 80)
         cr.fill()
 
         # back/left
-        cr.set_source_rgb(*self.lcd_style.highlight_color)
+        cr.set_source_rgb(*self.dent_color(6))
         cr.rectangle(-20, car_h-60, 60, 80)
         cr.fill()
 
         # back/right
-        cr.set_source_rgb(*self.lcd_style.highlight_color)
+        cr.set_source_rgb(*self.dent_color(7))
         cr.rectangle(car_w-40, car_h-60, 60, 80)
         cr.fill()
 
@@ -88,12 +114,22 @@ class CarDashlet(rfactorlcd.Dashlet):
         cr.fill()
 
         # draw wheels
-        for w_y in [0, car_h - wheel_h]:
-            for w_x in [-wheel_w * 1.3, car_w + wheel_w * 0.3]:
-                for i in range(1, 4):
-                    cr.set_source_rgb(*self.lcd_style.foreground_color)
+        if self.wheels:
+            for wheel in range(0, 4):
+                if wheel in (0, 1):
+                    w_y = 0
+                else:
+                    w_y = car_h - wheel_h
+
+                if wheel in (0, 2):
+                    w_x = -wheel_w * 1.3
+                else:
+                    w_x = car_w + wheel_w * 0.3
+
+                for i in range(0, 3):
+                    cr.set_source_rgb(*self.wheel_color(wheel, i))
                     cr.rectangle(w_x, w_y,
-                                 i*wheel_w/3, wheel_h)
+                                 (i+1)*wheel_w/3, wheel_h)
                     cr.fill()
 
         cr.restore()
