@@ -54,15 +54,6 @@ def is_olpc():
         return False
 
 
-class RPMWidget(object):
-
-    def __init__(self, x, y, w, h):
-        pass
-
-    def draw(self, cr):
-        pass
-
-
 class App(object):
 
     def __init__(self):
@@ -78,8 +69,8 @@ class App(object):
         self.new_data = {}
 
     def on_idle(self):
-        self.lock.aquire()
-        for tag, payload in self.new_data:
+        self.lock.acquire()
+        for tag, payload in self.new_data.items():
             self.lcd.update_state(tag, payload)
         self.new_data = {}
         self.lock.release()
@@ -112,7 +103,11 @@ class App(object):
                         # fout.write(stream[0:size])
                         payload = stream[8:size]
                         stream = stream[size:]
-                        self.lock.aquire()
+
+                        self.lock.acquire()
+                        # if data comes in faster then it gets eaten,
+                        # discard it, only keep the latest copy of
+                        # each tag
                         self.new_data[tag] = payload
                         self.lock.release()
         finally:
