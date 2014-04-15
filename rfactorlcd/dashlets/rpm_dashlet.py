@@ -51,16 +51,20 @@ class RPMDashlet(rfactorlcd.Dashlet):
            self.gear != state.gear:
 
             self.rpm = state.rpm
+            self.max_rpm = state.max_rpm
+            self.dmax_rpm = int(self.max_rpm + 999) / 1000 * 1000
             self.gear = state.gear
-            if self.max_rpm != state.max_rpm:
-                self.max_rpm = state.max_rpm
-                if self.max_rpm == 0:
-                    self.max_rpm = 1000
-                self.dmax_rpm = int(self.max_rpm + 999) / 1000 * 1000
+
+            if self.max_rpm != 0:
                 self.background = None
-            self.queue_draw()
+                self.queue_draw()
 
     def draw(self, cr):
+        if self.dmax_rpm == 0:
+            cr.move_to(self.w/2, self.h/2)
+            cr.show_text("inactive")
+            return
+
         # drawing background to an offscreen buffer so it doesn't have
         # to be regenerated each time
         if not self.background or \
