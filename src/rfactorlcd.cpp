@@ -600,10 +600,17 @@ rFactorLCDPlugin::UpdateScoring(const ScoringInfoV2& info)
       VehicleScoringInfoV2& veh = info.mVehicle[i];
 
       msg.write_char(veh.mIsPlayer);
+      msg.write_char(veh.mControl);
       msg.write_string(veh.mDriverName);
       msg.write_string(veh.mVehicleName);
       msg.write_string(veh.mVehicleClass);
       msg.write_short(veh.mTotalLaps);
+
+      msg.write_char(veh.mSector);
+      msg.write_char(veh.mFinishStatus);
+      msg.write_float(veh.mLapDist);
+      msg.write_float(veh.mPathLateral);
+      msg.write_float(veh.mTrackEdge);
 
       msg.write_char(veh.mInPits);
       msg.write_char(veh.mPlace);

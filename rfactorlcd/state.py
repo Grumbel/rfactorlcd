@@ -21,60 +21,108 @@ import rfactorlcd
 class WheelState(object):
 
     def __init__(self):
-        pass
+        self.rotation = 0.0
+        self.suspension_deflection = 0.0
+        self.ride_height = 0.0
+        self.tire_load = 0.0
+        self.lateral_force = 0.0
+        self.grip_fract = 0.0
+        self.brake_temp = 0.0
+        self.pressure = 0.0
+        self.temperature = [0.0, 0.0, 0.0]
+        self.wear = 0.0
+        self.surface_type = 0
+        self.flat = 0
+        self.detached = 0
 
 
 class VehicleState(object):
 
     def __init__(self):
-        pass
+        self.is_player = 0
+        self.control = 0
+        self.driver_name = ""
+        self.vehicle_name = ""
+        self.vehicle_class = ""
+        self.total_laps = 0
+
+        self.sector = 0
+        self.finish_status = 0
+        self.lap_dist = 0
+        self.path_lateral = 0.0
+        self.track_edge = 0.0
+
+        self.in_pits = 0
+        self.place = 0
+        self.time_behind_next = 0.0
+        self.laps_behind_next = 0
+        self.time_behind_leader = 0.0
+        self.laps_behind_leader = 0
+
+        self.best_sector1 = 0.0
+        self.best_sector2 = 0.0
+        self.best_lap_time = 0.0
+        self.last_sector1 = 0.0
+        self.last_sector2 = 0.0
+        self.last_lap_time = 0.0
+        self.cur_sector1 = 0.0
+        self.cur_sector2 = 0.0
+
+        self.num_pitstops = 0
+        self.num_penalties = 0
+
+        self.lap_start_et = 0.0
 
 
 class rFactorState(object):
 
-    def __init__(self, data="15/17,1,0.107,1.438,1.658,21.598,29.738,31.855,1:23.190,0.0,0,30.0,63.4,26.9,0.0,0.0"):
-        self.data = data
+    def __init__(self):
+        # telemetry defaults
+        self.lap_number = 0
+        self.lap_start_et = 0.0
 
-        cols = data.split(",")
-        self.position = cols[0]
-        self.running = int(cols[1])
-        self.unknowns = cols[2:5]
-        self.sector = cols[5:8]
-        self.laptime = cols[8]
-        self.speed = float(cols[9])
-        self.gear = int(cols[10])
-        self.fuel = float(cols[11])
-        self.oil_temp = float(cols[12])
-        self.water_temp = float(cols[13])
-        self.rpm = float(cols[14])
-        self.max_rpm = float(cols[15])
+        self.pos = (0.0, 0.0, 0.0)
+        self.local_vel = (0.0, 0.0, 0.0)
+        self.local_accel = (0.0, 0.0, 0.0)
+
+        self.ori_x = (0.0, 0.0, 0.0)
+        self.ori_y = (0.0, 0.0, 0.0)
+        self.ori_z = (0.0, 0.0, 0.0)
+        self.local_rot = (0.0, 0.0, 0.0)
+        self.local_rot_accel = (0.0, 0.0, 0.0)
+
+        self.gear = 0
+        self.rpm = 0.0
+        self.max_rpm = 0.0
+        self.clutch_rpm = 0.0
+
+        self.fuel = 0.0
+        self.water_temp = 0.0
+        self.oil_temp = 0.0
+
+        self.throttle = 0.0
+        self.brake = 0.0
+        self.steering = 0.0
+        self.clutch = 0.0
+
+        self.steering_arm_force = 0.0
+
+        self.scheduled_stops = 0
+        self.overheating = 0
+        self.detached = 0
+
+        self.dent_severity = [0, 0, 0, 0, 0, 0, 0, 0]
 
         self.wheels = [WheelState(), WheelState(), WheelState(), WheelState()]
+
+        self.num_vehicles = 0
+        self.player = 0
         self.vehicles = []
 
-    def to_vracingDisplayPRO(self):
-        result = "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s" % (
-            self.position,
-            self.running,
-            self.unknowns[0],
-            self.unknowns[1],
-            self.unknowns[2],
-            self.sector[0],
-            self.sector[1],
-            self.sector[2],
-            self.laptime,
-            self.speed,
-            self.gear,
-            self.fuel,
-            self.oil_temp,
-            self.water_temp,
-            self.rpm,
-            self.max_rpm)
-
-        # print "IN: ", self.data
-        # print "OUT: ", result
-
-        return result
+        # Backward compatibility hacks:
+        self.speed = 0
+        self.laptime = "1:23:45"
+        self.position = 1
 
     def on_telemetry(self, msg):
         self.lap_number = msg.read_int()
@@ -141,10 +189,20 @@ class rFactorState(object):
 
         for i in range(0, self.num_vehicles):
             self.vehicles[i].is_player = msg.read_char()
+            if self.vehicles[i].is_player:
+                self.player = self.vehicles[i]
+            self.vehicles[i].control = msg.read_char()
+
             self.vehicles[i].driver_name = msg.read_string()
             self.vehicles[i].vehicle_name = msg.read_string()
             self.vehicles[i].vehicle_class = msg.read_string()
             self.vehicles[i].total_laps = msg.read_short()
+
+            self.vehicles[i].sector = msg.read_char()
+            self.vehicles[i].finish_status = msg.read_char()
+            self.vehicles[i].lap_dist = msg.read__float()
+            self.vehicles[i].path_lateral = = msg.read__float()
+            self.vehicles[i].track_edge = msg.read__float()
 
             self.vehicles[i].in_pits = msg.read_char()
             self.vehicles[i].place = msg.read_char()
