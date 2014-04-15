@@ -18,21 +18,30 @@
 
 
 import SocketServer
-import threading
+import argparse
 import time
+
+
+g_filename = ""
 
 
 class MyTCPHandler(SocketServer.BaseRequestHandler):
 
     def handle(self):
-        with open("raw.log") as fin:
-            while True:
-                line = fin.readline()
-                if not line:
-                    fin.seek(0)
-                self.data = self.request.recv(1024)
-                self.request.sendall(line)
-                time.sleep(0.005)  # 2x regular speed
+        self.fin = open(g_filename, "rb")
+
+        while True:
+            request = self.request.recv(1024)
+
+            data = self.fin.read(1024)
+
+            # never run out of data
+            if not data:
+                self.fin.seek(0)
+                data = self.fin.read(1024)
+
+            self.request.sendall(data)
+            time.sleep(1.0 / 90.0 / 10.0)
 
 
 class ThreadedTCPServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
@@ -41,15 +50,22 @@ class ThreadedTCPServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
 
 def main():
     try:
-        host, port = "", 4580
-        # server = SocketServer.TCPServer((host, port), MyTCPHandler)
-        server = ThreadedTCPServer((host, port), MyTCPHandler)
+        parser = argparse.ArgumentParser(description='rFactor Remote LCD')
+        parser.add_argument('HOST', type=str, nargs='?', default="",
+                            help='IP to bind to')
+        parser.add_argument('PORT', type=int, nargs='?', default=4580,
+                            help='PORT to listen on')
+        parser.add_argument("-f", "--file", type=str, default="logs/race.log",
+                            help="FILE to load and send out")
+        args = parser.parse_args()
 
-        print "dummy server is listening on %s:%d" % (host, port)
-        server_thread = threading.Thread(target=server.serve_forever)
-        server_thread.daemon = True
-        server_thread.start()
-        server_thread.join()
+        global g_filename
+        g_filename = args.file
+
+        print "dummy server is listening on %s:%d and sending %s" % (args.HOST, args.PORT, args.file)
+        server = ThreadedTCPServer((args.HOST, args.PORT), MyTCPHandler)
+
+        server.serve_forever()
     except:
         raise
 
