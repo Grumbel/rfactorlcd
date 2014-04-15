@@ -119,6 +119,15 @@ class rFactorState(object):
         self.player = 0
         self.vehicles = []
 
+        # info
+        self.track_name = ""
+        self.player_name = ""
+        self.plr_file_name = ""
+        self.end_e_t = 0.0
+        self.max_laps = 0
+        self.lap_dist = 1.0
+
+
         # Backward compatibility hacks:
         self.speed = 0
         self.laptime = "1:23:45"
@@ -200,9 +209,9 @@ class rFactorState(object):
 
             self.vehicles[i].sector = msg.read_char()
             self.vehicles[i].finish_status = msg.read_char()
-            self.vehicles[i].lap_dist = msg.read__float()
-            self.vehicles[i].path_lateral = = msg.read__float()
-            self.vehicles[i].track_edge = msg.read__float()
+            self.vehicles[i].lap_dist = msg.read_float()
+            self.vehicles[i].path_lateral = msg.read_float()
+            self.vehicles[i].track_edge = msg.read_float()
 
             self.vehicles[i].in_pits = msg.read_char()
             self.vehicles[i].place = msg.read_char()
