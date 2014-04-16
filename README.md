@@ -1,9 +1,10 @@
 rFactor Remote LCD
 ==================
 
-rfactorlcd is a simple HUD for rFactor, it allows to display
-information such as speed, rpm, oil temperature and current position
-on a second monitor or on another computer.
+rfactorlcd is a simple HUD for rFactor and compatible games (e.g. Game
+Stock Car Extreme). It allows to display information such as speed,
+rpm, oil temperature and current position on a second monitor or on
+another computer.
 
 
 Installation
@@ -13,11 +14,9 @@ rfactorlcd consists of two parts, a rFactor plugin that makes the
 rFactor data available over the network and a simple app to display
 that data.
 
-At the moment rfactorlcd doesn't come with it's own plug-in, instead
-it connects to the rFactor plug-in vracingDisplayPRO. Download and
-install vracingDisplayPRO_rFactor_Plugin_1_02_Setup.exe from:
-
-http://display.vracing.pl/download.html
+The plugin source can be found in src/ and can be compiled with Visual
+Studio Express. The resulting .dll has to be copied over into rFators
+Plugins/ directory.
 
 Once rFactor is running, start rfactorlcd and give it the IP of the
 computer that is running rFactor on, e.g.:
