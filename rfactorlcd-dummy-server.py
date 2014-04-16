@@ -20,7 +20,7 @@
 import SocketServer
 import argparse
 import time
-
+import socket
 
 g_filename = ""
 
@@ -28,10 +28,15 @@ g_filename = ""
 class MyTCPHandler(SocketServer.BaseRequestHandler):
 
     def handle(self):
+        print "connection from:", self.request.getpeername()
+
+        self._shutdown = False
+        self.server.handler_lst.append(self)
+
         self.fin = open(g_filename, "rb")
 
-        while True:
-            request = self.request.recv(1024)
+        while not self._shutdown:
+            self.request.recv(1024)
 
             data = self.fin.read(1024)
 
@@ -45,29 +50,41 @@ class MyTCPHandler(SocketServer.BaseRequestHandler):
 
 
 class ThreadedTCPServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
-    pass
+
+    def __init__(self, *args):
+        SocketServer.TCPServer.__init__(self, *args)
+        self.allow_reuse_address = True
+        self.handler_lst = []
+
+    def shutdown(self):
+        """Close all the sockets in the handler so that the program can be Ctrl-C'ed"""
+
+        SocketServer.TCPServer.shutdown(self)
+        for handler in self.handler_lst:
+            print handler.request
+            handler._shutdown = True
+            handler.request.shutdown(socket.SHUT_WR)
 
 
 def main():
+    parser = argparse.ArgumentParser(description='rFactor Remote LCD')
+    parser.add_argument('HOST', type=str, nargs='?', default="",
+                        help='IP to bind to')
+    parser.add_argument('PORT', type=int, nargs='?', default=4580,
+                        help='PORT to listen on')
+    parser.add_argument("-f", "--file", type=str, default="logs/race.log",
+                        help="FILE to load and send out")
+    args = parser.parse_args()
+
+    global g_filename
+    g_filename = args.file
+
+    print "dummy server is listening on %s:%d and sending %s" % (args.HOST, args.PORT, args.file)
+    server = ThreadedTCPServer((args.HOST, args.PORT), MyTCPHandler)
     try:
-        parser = argparse.ArgumentParser(description='rFactor Remote LCD')
-        parser.add_argument('HOST', type=str, nargs='?', default="",
-                            help='IP to bind to')
-        parser.add_argument('PORT', type=int, nargs='?', default=4580,
-                            help='PORT to listen on')
-        parser.add_argument("-f", "--file", type=str, default="logs/race.log",
-                            help="FILE to load and send out")
-        args = parser.parse_args()
-
-        global g_filename
-        g_filename = args.file
-
-        print "dummy server is listening on %s:%d and sending %s" % (args.HOST, args.PORT, args.file)
-        server = ThreadedTCPServer((args.HOST, args.PORT), MyTCPHandler)
-
         server.serve_forever()
-    except:
-        raise
+    except KeyboardInterrupt:
+        server.shutdown()
 
 
 if __name__ == '__main__':

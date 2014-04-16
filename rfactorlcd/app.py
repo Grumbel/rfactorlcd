@@ -17,34 +17,10 @@
 
 import argparse
 import gtk
-import socket
-import threading
 import glib
-import datetime
-import os
-import struct
-import errno
-import select
+import threading
 
 import rfactorlcd
-
-
-# 17/17 position
-# 1
-# 0.615
-# 0.000
-# 0.000
-# 39.197
-# 0.000
-# 0.000
-# 2:27.362 some lap time
-# 0.0 speed
-# 0 gear
-# 100.0 fuel
-# 63.5 oil
-# 26.9 water
-# 0.0 rpm
-# 0.0 maxrpm
 
 
 class App(object):
@@ -55,86 +31,16 @@ class App(object):
         self.window = None
         self.black_on_white = True
         self.quit = False
-        self.host = None
-        self.port = None
-        self.sock = None
-        self.lock = threading.Lock()
-        self.new_data = {}
 
     def on_timeout(self):
-        self.lock.acquire()
-        for tag, payload in self.new_data.items():
+        data = self.client.release_data()
+        for tag, payload in data.items():
             self.lcd.update_state(tag, payload)
-        self.new_data = {}
-        self.lock.release()
-
-        # brute force framerate limiting
-        # time.sleep(1.0 / 30.0)
-
-        # keep idle loop going
         return True
-
-    def update_network(self):
-        time_str = datetime.datetime.now().strftime("%Y-%m-%dT%H%M%S")
-        if not os.path.isdir("logs"):
-            os.mkdir("logs")
-
-        print "writing log to %s" % time_str
-
-        # with open(os.path.join("logs", time_str + ".log"), "wt") as fout:
-
-        # glib.idle_add(self.on_idle)
-        glib.timeout_add(1000 / 180, self.on_timeout)
-        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        try:
-            print "Connecting to %s:%s" % (self.host, self.port)
-            self.sock.connect((self.host, self.port))
-            self.sock.setblocking(0)
-            stream = ""
-            buf = bytearray(4096)
-            view = memoryview(buf)
-            while not self.quit:
-                # send keep-alive to signal we are ready for data
-                self.sock.sendall("\n")
-
-                # block until there is data
-                select.select([self.sock], [], [])
-
-                # read all data
-                while True:
-                    try:
-                        nbytes = self.sock.recv_into(view, 4096)
-                        stream += view[0:nbytes].tobytes()
-                    except socket.error as serr:
-                        if serr.errno != errno.EWOULDBLOCK:
-                            raise
-                        break
-
-                self.lock.acquire()
-                while len(stream) >= 8:
-                    tag, size = struct.unpack_from("4sI", stream)
-                    if len(stream) < size:
-                        # need more data from the network
-                        break
-                    else:
-                        # fout.write(stream[0:size])
-                        payload = stream[8:size]
-                        stream = stream[size:]
-
-                        # if data comes in faster then it gets eaten,
-                        # discard it, only keep the latest copy of
-                        # each tag
-                        self.new_data[tag] = payload
-                self.lock.release()
-        finally:
-            self.sock.close()
 
     def on_quit(self, *args):
         self.quit = True
-        try:
-            self.sock.shutdown(socket.SHUT_WR)
-        except:
-            pass
+        self.client.shutdown()
         gtk.main_quit()
 
     def on_toggle_fullscreen(self, *args):
@@ -218,9 +124,6 @@ class App(object):
                             help="Config file to load")
         args = parser.parse_args()
 
-        self.host = args.HOST
-        self.port = args.PORT
-
         gtk.gdk.threads_init()
 
         self.window = gtk.Window()
@@ -245,10 +148,17 @@ class App(object):
         self.window.connect("delete-event", self.on_quit)
         # window.connect("realize", realize_cb)
 
-        threading.Thread(target=self.update_network).start()
+        glib.timeout_add(1000 / 180, self.on_timeout)
+
+        self.client = rfactorlcd.NetworkClient(args.HOST, args.PORT)
+        self.client_thread = threading.Thread(target=self.client.run)
+        self.client_thread.daemon = True
+        self.client_thread.start()
 
         gtk.main()
 
+        self.client.shutdown()
+        self.client_thread.join()
 
 if __name__ == '__main__':
     app = App()

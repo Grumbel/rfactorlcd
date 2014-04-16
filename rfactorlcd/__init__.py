@@ -17,16 +17,18 @@
 
 from .app import App
 from .binary_decoder import BinaryDecoder
+from .dashlet import Dashlet
+from .dashlets import dashlets
 from .lcd_widget import LCDWidget
+from .network_client import NetworkClient
 from .state import rFactorState
 from .style import Style
-from .workspace import Workspace
-from .dashlet import Dashlet
 from .util import is_olpc
-from .dashlets import dashlets
+from .workspace import Workspace
+
 
 __all__ = ["App", "Style", "rFactorState", "LCDWidget", "Workspace",
-           "Dashlet", "BinaryDecoder", "is_olpc", "dashlets"]
+           "Dashlet", "BinaryDecoder", "is_olpc", "dashlets", "NetworkClient"]
 
 
 # EOF #
