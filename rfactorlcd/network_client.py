@@ -23,6 +23,7 @@ import socket
 import struct
 import threading
 import time
+import logging
 
 
 class ConnectionClosed(Exception):
@@ -52,7 +53,8 @@ class NetworkClient:
         time_str = datetime.datetime.now().strftime("%Y-%m-%dT%H%M%S")
         if not os.path.isdir("logs"):
             os.mkdir("logs")
-        print "writing log to %s" % time_str
+
+        logging.info("writing data log to %s", time_str)
 
         while not self._shutdown:
             try:
@@ -61,14 +63,15 @@ class NetworkClient:
                 try:
                     self.sock.connect((self.host, self.port))
                     self.sock.setblocking(0)
-                    print "connection successful: %s:%s" % (self.host, self.port)
+                    logging.info("connection successful: %s:%s", self.host, self.port)
+
                     while not self._shutdown:
                         self.update()
                 except socket.error as err:
                     if err.errno == errno.ECONNREFUSED or \
                        err.errno == errno.ECONNABORTED or \
                        err.errno == errno.ECONNRESET:
-                        print "connection error, trying reconnect: %s:%s %s" % (self.host, self.port, err)
+                        logging.info("couldn't connect, trying reconnect: %s:%s %s", self.host, self.port, err)
                         time.sleep(1)
                     else:
                         raise
@@ -99,15 +102,12 @@ class NetworkClient:
             # read all data
             while not self._shutdown:
                 try:
-                    print "trying recv"
                     nbytes = self.sock.recv_into(view, 4096)
                     if nbytes == 0:
-                        print "connection shutting down"
+                        logging.error("connection shut down")
                         raise ConnectionClosed()
-                    print "trying recv done:", nbytes
                     stream += view[0:nbytes].tobytes()
                 except socket.error as serr:
-                    print serr
                     if serr.errno != errno.EWOULDBLOCK:
                         raise
                     break
