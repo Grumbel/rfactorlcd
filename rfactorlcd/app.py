@@ -23,6 +23,8 @@ import glib
 import datetime
 import os
 import struct
+import errno
+import select
 
 import rfactorlcd
 
@@ -68,12 +70,15 @@ class App(object):
         self.lock = threading.Lock()
         self.new_data = {}
 
-    def on_idle(self):
+    def on_timeout(self):
         self.lock.acquire()
         for tag, payload in self.new_data.items():
             self.lcd.update_state(tag, payload)
         self.new_data = {}
         self.lock.release()
+
+        # brute force framerate limiting
+        # time.sleep(1.0 / 30.0)
 
         # keep idle loop going
         return True
@@ -87,29 +92,49 @@ class App(object):
 
         # with open(os.path.join("logs", time_str + ".log"), "wt") as fout:
 
-        glib.idle_add(self.on_idle)
-
+        # glib.idle_add(self.on_idle)
+        glib.timeout_add(1000 / 180, self.on_timeout)
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
             print "Connecting to %s:%s" % (self.host, self.port)
             self.sock.connect((self.host, self.port))
+            self.sock.setblocking(0)
             stream = ""
+            buf = bytearray(4096)
+            view = memoryview(buf)
             while not self.quit:
+                # send keep-alive to signal we are ready for data
                 self.sock.sendall("\n")
-                stream += self.sock.recv(1024)
-                if len(stream) >= 8:
+
+                # block until there is data
+                select.select([self.sock], [], [])
+
+                # read all data
+                while True:
+                    try:
+                        nbytes = self.sock.recv_into(view, 4096)
+                        stream += view[0:nbytes].tobytes()
+                    except socket.error as serr:
+                        if serr.errno != errno.EWOULDBLOCK:
+                            raise
+                        break
+
+                self.lock.acquire()
+                while len(stream) >= 8:
                     tag, size = struct.unpack_from("4sI", stream)
-                    if len(stream) >= size:
+                    if len(stream) < size:
+                        # need more data from the network
+                        break
+                    else:
                         # fout.write(stream[0:size])
                         payload = stream[8:size]
                         stream = stream[size:]
 
-                        self.lock.acquire()
                         # if data comes in faster then it gets eaten,
                         # discard it, only keep the latest copy of
                         # each tag
                         self.new_data[tag] = payload
-                        self.lock.release()
+                self.lock.release()
         finally:
             self.sock.close()
 
