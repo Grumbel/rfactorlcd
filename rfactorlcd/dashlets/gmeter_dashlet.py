@@ -59,7 +59,7 @@ class GMeterDashlet(rfactorlcd.Dashlet):
         for i, local_accel in enumerate(self.accel_history):
             # meters/sec^2
             accel_x = -local_accel[0] / 9.80665 / 3.0 * r
-            accel_y = -local_accel[2] / 9.80665 / 3.0 * r
+            accel_y = local_accel[2] / 9.80665 / 3.0 * r
 
             p = (i+1.0)/self.maxlen
             cr.set_source_rgb(c[0] * p,
