@@ -73,7 +73,7 @@ class CarDashlet(rfactorlcd.Dashlet):
         cr.fill()
 
         # back
-        cr.set_source_rgb(*self.dent_color(1))
+        cr.set_source_rgb(*self.dent_color(4))
         cr.rectangle(30, car_h, car_w - 60, 20)
         cr.fill()
 
@@ -83,27 +83,27 @@ class CarDashlet(rfactorlcd.Dashlet):
         cr.fill()
 
         # right side
-        cr.set_source_rgb(*self.dent_color(3))
+        cr.set_source_rgb(*self.dent_color(6))
         cr.rectangle(car_w, 40, 20, car_h - 80)
         cr.fill()
 
         # front/left
-        cr.set_source_rgb(*self.dent_color(4))
+        cr.set_source_rgb(*self.dent_color(1))
         cr.rectangle(-20, -20, 60, 80)
         cr.fill()
 
         # front/right
-        cr.set_source_rgb(*self.dent_color(5))
+        cr.set_source_rgb(*self.dent_color(7))
         cr.rectangle(car_w-40, -20, 60, 80)
         cr.fill()
 
         # back/left
-        cr.set_source_rgb(*self.dent_color(6))
+        cr.set_source_rgb(*self.dent_color(3))
         cr.rectangle(-20, car_h-60, 60, 80)
         cr.fill()
 
         # back/right
-        cr.set_source_rgb(*self.dent_color(7))
+        cr.set_source_rgb(*self.dent_color(5))
         cr.rectangle(car_w-40, car_h-60, 60, 80)
         cr.fill()
 
