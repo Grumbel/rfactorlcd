@@ -47,15 +47,6 @@ import rfactorlcd
 # 0.0 maxrpm
 
 
-def is_olpc():
-    try:
-        with open("/etc/fedora-release") as f:
-            content = f.read()
-        return content[0:4] == "OLPC"
-    except IOError:
-        return False
-
-
 class App(object):
 
     def __init__(self):
@@ -245,7 +236,7 @@ class App(object):
         self.window.set_default_size(1200, 900)
         self.window.set_size_request(1200, 900)
 
-        if is_olpc():
+        if rfactorlcd.is_olpc():
             self.on_toggle_fullscreen()
 
         accelgroup = self.create_accelgroup()

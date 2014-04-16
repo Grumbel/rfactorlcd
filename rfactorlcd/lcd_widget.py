@@ -66,18 +66,15 @@ class LCDWidget(gtk.DrawingArea):
         self.connect("key_press_event", self.on_key_press)
 
         self.menu = gtk.Menu()
-        for item in ["RPMDashlet", "TempDashlet", "SpeedDashlet",
-                     "SectorDashlet", "LaptimeDashlet", "PositionDashlet",
-                     "RPM2Dashlet", "ShiftlightsDashlet", "CarDashlet",
-                     "SpeedometerDashlet", "PedalsDashlet", "VehiclesDashlet",
-                     "PlacesDashlet"]:
-            menu_item = gtk.MenuItem("Add %s" % item)
+        for k, dashlet_class in rfactorlcd.get_dashlets().items():
+            menu_item = gtk.MenuItem("Add %s" % k)
             self.menu.append(menu_item)
-            menu_item.connect("activate", lambda arg, item=item: self.on_menu_item(arg, item))
+            menu_item.connect("activate",
+                              lambda arg, dashlet_class=dashlet_class:
+                              self.on_menu_item(arg, dashlet_class))
             menu_item.show()
 
     def on_menu_item(self, menu_item, dashlet_class):
-        dashlet_class = rfactorlcd.__getattribute__(dashlet_class)
         print "on_menu_item", menu_item, dashlet_class
         dashlet = dashlet_class(self, self.lcd_style)
         dashlet.set_geometry(self.dashlet_insert_pos[0],

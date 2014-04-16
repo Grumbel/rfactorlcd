@@ -127,7 +127,6 @@ class rFactorState(object):
         self.max_laps = 0
         self.lap_dist = 1.0
 
-
         # Backward compatibility hacks:
         self.speed = 0
         self.laptime = "1:23:45"

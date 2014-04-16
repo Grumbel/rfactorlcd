@@ -3,4 +3,5 @@
 *~
 /.sconsign.dblite
 /logs/
+/old/
 /rfactorlcdPlugin.dll

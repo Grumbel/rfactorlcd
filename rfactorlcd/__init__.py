@@ -21,31 +21,11 @@ from .lcd_widget import LCDWidget
 from .state import rFactorState
 from .style import Style
 from .workspace import Workspace
-
-from .dashlets.dashlet import Dashlet
-from .dashlets.car_dashlet import CarDashlet
-from .dashlets.laptime_dashlet import LaptimeDashlet
-from .dashlets.position_dashlet import PositionDashlet
-from .dashlets.rpm2_dashlet import RPM2Dashlet
-from .dashlets.rpm_dashlet import RPMDashlet
-from .dashlets.sector_dashlet import SectorDashlet
-from .dashlets.shiftlights_dashlet import ShiftlightsDashlet
-from .dashlets.speed_dashlet import SpeedDashlet
-from .dashlets.speedometer_dashlet import SpeedometerDashlet
-from .dashlets.temp_dashlet import TempDashlet
-from .dashlets.pedals_dashlet import PedalsDashlet
-from .dashlets.vehicles_dashlet import VehiclesDashlet
-from .dashlets.places_dashlet import PlacesDashlet
-
+from .dashlet import Dashlet
+from .util import is_olpc, get_dashlets
 
 __all__ = ["App", "Style", "rFactorState", "LCDWidget", "Workspace",
-           "Dashlet", "RPMDashlet", "TempDashlet", "SpeedDashlet",
-           "SectorDashlet", "LaptimeDashlet", "PositionDashlet",
-           "RPM2Dashlet", "ShiftlightsDashlet", "CarDashlet",
-           "SpeedometerDashlet", "PedalsDashlet", "VehiclesDashlet",
-           "PlacesDashlet",
-           "BinaryDecoder"]
-
+           "Dashlet", "BinaryDecoder", "is_olpc", "get_dashlets"]
 
 
 # EOF #

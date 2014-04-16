@@ -16,6 +16,7 @@
 
 
 import ConfigParser
+
 import rfactorlcd
 
 
@@ -94,6 +95,7 @@ class Workspace(object):
             config.write(fout)
 
     def load(self, filename):
+        dashlet_classes = rfactorlcd.get_dashlets()
         print "loading workspace from %s" % filename
         dashlets = []
         try:
@@ -107,7 +109,10 @@ class Workspace(object):
                     print "loading %s" % section
                     try:
                         dashlet_type = config.get(section, "type")
-                        dashlet_class = rfactorlcd.__getattribute__(dashlet_type)
+                        print "TYPE: ", dashlet_type
+                        dashlet_class = dashlet_classes[dashlet_type]
+                        print dashlet_classes
+
                         if not issubclass(dashlet_class, rfactorlcd.Dashlet):
                             raise Exception("illegal class: %s" % dashlet_type)
                         else:
@@ -117,8 +122,8 @@ class Workspace(object):
                                                  config.getfloat(section, "w"),
                                                  config.getfloat(section, "h"))
                             dashlets.append(dashlet)
-                    except:
-                        print "ERROR"
+                    except Exception as err:
+                        print "ERROR: %s" % err
                         raise
 
             # load successful
@@ -128,46 +133,7 @@ class Workspace(object):
             print "error while loading: %s" % e
 
     def load_default(self):
-        rpm_dashlet = rfactorlcd.RPMDashlet(self, self.lcd_style)
-        rpm_dashlet.set_geometry(100, 100, 300, 300)
+        self.load("default.rflcd")
 
-        temp_dashlet = rfactorlcd.TempDashlet(self, self.lcd_style)
-        temp_dashlet.set_geometry(700, 250, 450, 150)
-
-        speed_dashlet = rfactorlcd.SpeedDashlet(self, self.lcd_style)
-        speed_dashlet.set_geometry(580, 50, 400, 100)
-
-        sector_dashlet = rfactorlcd.SectorDashlet(self, self.lcd_style)
-        sector_dashlet.set_geometry(800, 550, 300, 300)
-
-        laptime_dashlet = rfactorlcd.LaptimeDashlet(self, self.lcd_style)
-        laptime_dashlet.set_geometry(50, 600, 800, 50)
-
-        position_dashlet = rfactorlcd.PositionDashlet(self, self.lcd_style)
-        position_dashlet.set_geometry(50, 750, 800, 50)
-
-        shiftlights_dashlet = rfactorlcd.ShiftlightsDashlet(self, self.lcd_style)
-        shiftlights_dashlet.set_geometry(0, 0, 1200, 80)
-
-        car_dashlet = rfactorlcd.CarDashlet(self, self.lcd_style)
-        car_dashlet.set_geometry(1200 - 400, 900 - 400, 400, 400)
-
-        speedometer_dashlet = rfactorlcd.SpeedometerDashlet(self, self.lcd_style)
-        speedometer_dashlet.set_geometry(100, 100, 400, 400)
-
-        # rpm2_dashlet = rfactorlcd.RPM2Dashlet(self, self.lcd_style)
-        # rpm2_dashlet.set_geometry(600, 400, 400, 300)
-
-        self.dashlets = [
-            speedometer_dashlet,
-            rpm_dashlet,
-            speed_dashlet,
-            temp_dashlet,
-            # sector_dashlet,
-            laptime_dashlet,
-            position_dashlet,
-            shiftlights_dashlet,
-            car_dashlet
-        ]
 
 # EOF #
