@@ -109,9 +109,7 @@ class Workspace(object):
                     print "loading %s" % section
                     try:
                         dashlet_type = config.get(section, "type")
-                        print "TYPE: ", dashlet_type
                         dashlet_class = dashlet_classes[dashlet_type]
-                        print dashlet_classes
 
                         if not issubclass(dashlet_class, rfactorlcd.Dashlet):
                             raise Exception("illegal class: %s" % dashlet_type)
