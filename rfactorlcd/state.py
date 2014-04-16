@@ -138,7 +138,10 @@ class rFactorState(object):
 
         self.pos = msg.read_vect()
         self.local_vel = msg.read_vect()
-        self.speed = -self.local_vel[2]
+
+        # give speed in km/h
+        self.speed = -self.local_vel[2] * 3.6
+
         self.local_accel = msg.read_vect()
 
         self.ori_x = msg.read_vect()
