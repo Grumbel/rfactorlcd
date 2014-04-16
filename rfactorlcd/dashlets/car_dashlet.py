@@ -41,7 +41,7 @@ class CarDashlet(rfactorlcd.Dashlet):
         severity = self.dent_severity[part]
 
         if severity == 0:
-            return (0, 1, 0)
+            return self.lcd_style.shadow_color
         elif severity == 1:
             return (1, 1, 0)
         elif severity == 2:
@@ -50,9 +50,10 @@ class CarDashlet(rfactorlcd.Dashlet):
             return (1, 1, 1)
 
     def wheel_color(self, wheel, side):
-        temp = self.wheels[wheel].temperature[side]
-        p = min(max(0.0, (celsius(temp) - 20) / 80.0), 1.0)
-        return (p, 1.0 - p, 0.0)
+        temp = celsius(self.wheels[wheel].temperature[side])
+        blue = 1.0 - min(max(0.0, float(temp - 70) / (120 - 70)), 1.0)
+        red = min(max(0.0, float(temp - 30) / (70 - 30)), 1.0)
+        return (red, 0, blue)
 
     def draw(self, cr):
         car_w = 150
