@@ -15,13 +15,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-import types
-import pkgutil
-
-import rfactorlcd
-import rfactorlcd.dashlets
-
-
 def is_olpc():
     try:
         with open("/etc/fedora-release") as f:
@@ -29,21 +22,6 @@ def is_olpc():
         return content[0:4] == "OLPC"
     except IOError:
         return False
-
-
-def get_dashlets():
-    result = {}
-    for loader, module_name, is_pkg in pkgutil.iter_modules(rfactorlcd.dashlets.__path__):
-        module = loader.find_module(module_name).load_module(module_name)
-
-        for k, v in module.__dict__.items():
-            if isinstance(v, types.TypeType) and \
-               issubclass(v, rfactorlcd.Dashlet):
-                if k in result:
-                    raise RuntimeError("duplicate dashlet: %s" % k)
-                else:
-                    result[k] = v
-    return result
 
 
 # EOF #

@@ -22,10 +22,11 @@ from .state import rFactorState
 from .style import Style
 from .workspace import Workspace
 from .dashlet import Dashlet
-from .util import is_olpc, get_dashlets
+from .util import is_olpc
+from .dashlets import dashlets
 
 __all__ = ["App", "Style", "rFactorState", "LCDWidget", "Workspace",
-           "Dashlet", "BinaryDecoder", "is_olpc", "get_dashlets"]
+           "Dashlet", "BinaryDecoder", "is_olpc", "dashlets"]
 
 
 # EOF #

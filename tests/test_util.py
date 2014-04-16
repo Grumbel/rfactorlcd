@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 # rFactor Remote LCD
 # Copyright (C) 2014 Ingo Ruhnke <grumbel@gmail.com>
 #
@@ -18,21 +16,33 @@
 
 
 import unittest
+import struct
+import os
 
 import rfactorlcd
-import rfactorlcd.state
+from rfactorlcd.dashlets.gmeter_dashlet import GMeterDashlet
 
 
-class rFactorLCDTestCase(unittest.TestCase):
+class UtilTestCase(unittest.TestCase):
 
-    def setUp(self):
-        pass
+    def test_dashlets_import(self):
+        """Make sure that the plugin modules are not reloaded, to avoid
+        getting incompatible types with the name names and super() failing as
+        a result, see:
 
-    def tearDown(self):
-        pass
+        http://thingspython.wordpress.com/2010/09/27/another-super-wrinkle-raising-typeerror/
+        """
 
-    def test_loading_aspect(self):
-        pass
+        a = rfactorlcd.dashlets["GMeterDashlet"]
+        b = GMeterDashlet
+
+        self.assertEqual(a, b)
+
+        a_obj = a(None, None)
+        b_obj = b(None, None)
+        
+        self.assertTrue(isinstance(a_obj, b))
+        self.assertTrue(isinstance(b_obj, a))
 
 
 if __name__ == '__main__':

@@ -95,7 +95,6 @@ class Workspace(object):
             config.write(fout)
 
     def load(self, filename):
-        dashlet_classes = rfactorlcd.get_dashlets()
         print "loading workspace from %s" % filename
         dashlets = []
         try:
@@ -109,7 +108,7 @@ class Workspace(object):
                     print "loading %s" % section
                     try:
                         dashlet_type = config.get(section, "type")
-                        dashlet_class = dashlet_classes[dashlet_type]
+                        dashlet_class = rfactorlcd.dashlets[dashlet_type]
 
                         if not issubclass(dashlet_class, rfactorlcd.Dashlet):
                             raise Exception("illegal class: %s" % dashlet_type)

@@ -19,6 +19,7 @@ import rfactorlcd
 import math
 import collections
 
+
 class GMeterDashlet(rfactorlcd.Dashlet):
 
     def __init__(self, *args):
@@ -28,16 +29,15 @@ class GMeterDashlet(rfactorlcd.Dashlet):
         self.accel_history = collections.deque(maxlen=self.maxlen)
 
     def update_state(self, state):
-        
+
         if self.local_accel != state.local_accel:
             self.accel_history.append(self.local_accel)
             self.local_accel = state.local_accel
             self.queue_draw()
 
-
     def draw(self, cr):
         r = min(self.w/2, self.h/2) - 16
-        
+
         # background
         cr.new_path()
         cr.arc(self.w/2, self.h/2, r/3*1, 0, 2*math.pi)
@@ -54,7 +54,7 @@ class GMeterDashlet(rfactorlcd.Dashlet):
         cr.set_source_rgb(*self.lcd_style.shadow_color)
         cr.set_line_width(4.0)
         cr.stroke()
-        
+
         c = self.lcd_style.highlight_color
         for i, local_accel in enumerate(self.accel_history):
             # meters/sec^2
