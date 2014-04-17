@@ -20,16 +20,28 @@ import math
 
 
 class Alignment:
-    LEFT = 1 << 0
-    RIGHT = 1 << 1
-    CENTER = LEFT | RIGHT
-
-    TOP = 1 << 2
-    BOTTOM = 1 << 3
-    MIDDLE = TOP | BOTTOM
+    CENTER = 0
+    LEFT = 1
+    RIGHT = 2
 
 
-class Properties(object):
+class Anchor:
+    CENTER = 0
+
+    W = 1 << 0
+    E = 1 << 1
+
+    N = 1 << 2
+    S = 1 << 3
+
+    NW = N | W
+    NE = N | E
+
+    SW = S | W
+    SE = S | E
+
+
+class Style(object):
 
     def __init__(self):
         self.line_width = 1
@@ -40,6 +52,20 @@ class Properties(object):
         self.line_width = style.get('line_width')
         self.fill_color = style.get('fill_color')
         self.stroke_color = style.get('stroke_color')
+
+    def render_path(self, cr):
+        cr.set_line_width(self.line_width)
+
+        if self.fill_color is not None:
+            self.apply_fill_color(cr)
+            if self.stroke_color is not None:
+                cr.fill_preserve()
+            else:
+                cr.fill()
+
+        if self.stroke_color is not None:
+            self.apply_stroke_color(cr)
+            cr.stroke()
 
 
 class Item(object):
@@ -73,8 +99,8 @@ class Group(Item):
     def add_child(self, child):
         self.children.append(child)
 
-    def add_text(self, x, y, text, alignment=Alignment.TOP | Alignment.LEFT, font_style=None, **style):
-        child = Text(x, y, text, alignment, font_style, **style)
+    def add_text(self, x, y, text, anchor=Anchor.NW, font_style=None, **style):
+        child = Text(x, y, text, anchor, font_style, **style)
         self.add_child(child)
         return child
 
@@ -141,19 +167,7 @@ class Path(Item):
 
     def render(self, cr):
         self.make_path()
-
-        cr.set_line_width(self.style.line_width)
-
-        if self.style.fill_color is not None:
-            self.style.apply_fill_color(cr)
-            if self.style.stroke_color is not None:
-                cr.fill_preserve()
-            else:
-                cr.fill()
-
-        if self.style.stroke_color is not None:
-            self.style.apply_stroke_color(cr)
-            cr.stroke()
+        self.style.render_path(cr)
 
 
 class Rectangle(Item):
@@ -174,36 +188,46 @@ class Rectangle(Item):
 
 class Text(Item):
 
-    def __init__(self, x, y, text,  alignment = None, font_style = None, **style):
-        self.text = text
+    def __init__(self, x, y, text,  anchor=Anchor.NW, font_style=None, **style):
+        self._text = text
         self.x = x
         self.y = y
+        self.anchor = anchor
 
-    def set_text(self, text):
-        self.text = text
+    @property
+    def text(self):
+        return self._text
+
+    @text.setter
+    def text(self, text):
+        self._text = text
 
     def render(self, cr):
+        x_bearing, y_bearing, width, height, x_advance, y_advance = cr.text_extents(self._text)
+
         x = self.x
         y = self.y
-
-        x_bearing, y_bearing, width, height, x_advance, y_advance = cr.text_extents(self.text)
 
         self.w = width
         self.h = height
 
-        if self.alignment & (Alignment.LEFT | Alignment.RIGHT):
-            x -= self.w / 2
-        elif self.alignment & Alignment.RIGHT:
+        if self.anchor & Anchor.W:
+            x += 0
+        elif self.anchor & Anchor.E:
             x -= self.w
+        else:
+            x -= self.w/2
 
-        if self.alignment & (Alignment.TOP | Alignment.BOTTOM):
-            y -= self.h / 2
-        elif self.alignment & Alignment.BOTTOM:
+        if self.anchor & Anchor.N:
+            y += 0
+        elif self.anchor & Anchor.S:
             y -= self.h
+        else:
+            y -= self.h/2
 
-        cr.move_to(x, y)
-        cr.show_text(self.text)
-        pass
+        cr.move_to(x - x_bearing,
+                   y - y_bearing)
+        cr.show_text(self._text)
 
 
 # EOF #

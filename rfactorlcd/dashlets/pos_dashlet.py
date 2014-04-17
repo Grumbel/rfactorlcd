@@ -18,7 +18,7 @@
 import rfactorlcd
 
 
-class PositionDashlet(rfactorlcd.Dashlet):
+class PositionDashlet(rfactorlcd.Text2Dashlet):
 
     def __init__(self, *args):
         super(PositionDashlet, self).__init__(*args)
@@ -32,12 +32,8 @@ class PositionDashlet(rfactorlcd.Dashlet):
                 self.place = state.player.place
                 self.num_vehicles = state.num_vehicles
 
-    def draw(self, cr):
-        cr.set_source_rgb(*self.lcd_style.foreground_color)
-        cr.move_to(0, self.h)
-        cr.set_font_size(self.h)
-        cr.show_text("Pos:")
-        cr.show_text("%2d/%d" % (self.place, self.num_vehicles))
+            self.left_item.text = "Pos:"
+            self.right_item.text = "%2d/%d" % (self.place, self.num_vehicles)
 
 
 # EOF #

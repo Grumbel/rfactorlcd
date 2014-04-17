@@ -16,28 +16,23 @@
 
 
 import rfactorlcd
+import rfactorlcd.canvas as canvas
 
 
-def format_time(v):
-    if v == 0 or v == -1.0:
-        return "--:--:---"
-    minutes = int(v / 60)
-    v -= minutes * 60
-    seconds = int(v)
-    v -= seconds
-    mili = int(v * 1000)
-    return "%2d:%02d:%03d" % (minutes, seconds, mili)
-
-
-class ClockDashlet(rfactorlcd.TextDashlet):
+class TextDashlet(rfactorlcd.Dashlet):
 
     def __init__(self, *args):
-        super(ClockDashlet, self).__init__(*args)
-        self.time = 0.0
+        super(TextDashlet, self).__init__(*args)
+        self.text_item = canvas.Text(0, 0, "N", canvas.Anchor.CENTER)
 
-    def update_state(self, state):
-        self.time = state.current_e_t
-        self.text_item.text = format_time(self.time)
+    def reshape(self, x, y, w, h):
+        self.text_item.x = w/2
+        self.text_item.y = h/2
+
+    def draw(self, cr):
+        cr.set_source_rgb(*self.lcd_style.foreground_color)
+        cr.set_font_size(self.h)
+        self.text_item.render(cr)
 
 
 # EOF #

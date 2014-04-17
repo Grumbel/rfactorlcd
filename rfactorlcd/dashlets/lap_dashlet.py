@@ -16,28 +16,24 @@
 
 
 import rfactorlcd
-import cairo
 
 
-class LapDashlet(rfactorlcd.Dashlet):
+class LapDashlet(rfactorlcd.Text2Dashlet):
 
     def __init__(self, *args):
-        super(LapDashlet, self).__init__(*args)       
+        super(LapDashlet, self).__init__(*args)
         self.lap_number = 0
         self.max_laps = 0
-        
+
     def update_state(self, state):
         if self.lap_number != state.lap_number or \
            self.max_laps != state.max_laps:
+
             self.lap_number = state.lap_number
             self.max_laps = state.max_laps
 
-    def draw(self, cr):
-        cr.move_to(0, self.h)
-        cr.set_font_size(self.h)
-        cr.set_source_rgb(*self.lcd_style.foreground_color)
-        cr.show_text("Lap:")
-        cr.show_text("%2d/%d" % (self.lap_number+1, self.max_laps))
-        
+            self.left_item.text = "Lap:"
+            self.right_item.text = "%2d/%d" % (self.lap_number+1, self.max_laps)
+
 
 # EOF #

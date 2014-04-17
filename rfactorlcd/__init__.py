@@ -18,6 +18,8 @@
 from .app import App
 from .binary_decoder import BinaryDecoder
 from .dashlet import Dashlet
+from .text_dashlet import TextDashlet
+from .text2_dashlet import Text2Dashlet
 from .dashlets import dashlets
 from .lcd_widget import LCDWidget
 from .network_client import NetworkClient
@@ -28,7 +30,8 @@ from .workspace import Workspace
 
 
 __all__ = ["App", "Style", "rFactorState", "LCDWidget", "Workspace",
-           "Dashlet", "BinaryDecoder", "is_olpc", "dashlets", "NetworkClient"]
+           "Dashlet", "TextDashlet", "Text2Dashlet",
+           "BinaryDecoder", "is_olpc", "dashlets", "NetworkClient"]
 
 
 # EOF #

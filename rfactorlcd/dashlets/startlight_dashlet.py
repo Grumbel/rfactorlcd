@@ -30,7 +30,7 @@ class StartlightDashlet(rfactorlcd.Dashlet):
 
     def reshape(self, x, y, w, h):
         pass
-    
+
     def update_state(self, state):
         if self.start_light != state.start_light or \
            self.num_red_lights != state.num_red_lights:
@@ -53,7 +53,7 @@ class StartlightDashlet(rfactorlcd.Dashlet):
                 else:
                     cr.set_line_width(2.0)
                     cr.set_source_rgb(*self.lcd_style.shadow_color)
-                    cr.stroke()                
-        
+                    cr.stroke()
+
 
 # EOF #

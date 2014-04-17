@@ -33,10 +33,10 @@ class CanvasTestCase(unittest.TestCase):
 
     def test_canvas(self):
         root = canvas.Group()
-        root.add_text(0, 0, "Left", canvas.Alignment.LEFT)
-        root.add_text(0, 0, "Right", canvas.Alignment.RIGHT)
-        root.add_text(0, 0, "Top", canvas.Alignment.TOP)
-        root.add_text(0, 0, "Bottom", canvas.Alignment.BOTTOM)
+        root.add_text(0, 0, "West", canvas.Anchor.W)
+        root.add_text(0, 0, "East", canvas.Anchor.E)
+        root.add_text(0, 0, "North", canvas.Anchor.N)
+        root.add_text(0, 0, "South", canvas.Anchor.S)
         root.add_rectangle(-8, -8, 16, 16)
 
 if __name__ == '__main__':

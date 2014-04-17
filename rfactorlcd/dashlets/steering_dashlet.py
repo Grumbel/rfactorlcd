@@ -48,12 +48,12 @@ class SteeringDashlet(rfactorlcd.Dashlet):
 
         cr.set_source_rgb(*self.lcd_style.foreground_color)
         cr.new_path()
-        cr.arc(self.w/2, self.h/2, 
+        cr.arc(self.w/2, self.h/2,
                r, 0, 2.0 * math.pi)
         cr.stroke()
 
         cr.new_path()
-        cr.arc(self.w/2, self.h/2, 
+        cr.arc(self.w/2, self.h/2,
                r/5.0, 0, 2.0 * math.pi)
         cr.fill()
 
