@@ -66,7 +66,7 @@ class LCDWidget(gtk.DrawingArea):
         self.connect("key_press_event", self.on_key_press)
 
         self.menu = gtk.Menu()
-        for k, dashlet_class in rfactorlcd.dashlets.items():
+        for k, dashlet_class in sorted(rfactorlcd.dashlets.items(), key=lambda k: k[0]):
             menu_item = gtk.MenuItem("Add %s" % k)
             self.menu.append(menu_item)
             menu_item.connect("activate",
