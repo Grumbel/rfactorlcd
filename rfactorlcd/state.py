@@ -116,7 +116,7 @@ class rFactorState(object):
         self.wheels = [WheelState(), WheelState(), WheelState(), WheelState()]
 
         self.num_vehicles = 0
-        self.player = 0
+        self.player = None
         self.vehicles = []
 
         # info
@@ -141,7 +141,6 @@ class rFactorState(object):
         # Backward compatibility hacks:
         self.speed = 0
         self.laptime = "1:23:45"
-        self.position = 1
 
     def on_telemetry(self, msg):
         self.lap_number = msg.read_int()
