@@ -138,7 +138,7 @@ class SpeedometerDashlet(rfactorlcd.Dashlet):
                        y * self.outer_r)
             cr.stroke()
 
-            cr.set_font_size(20)
+            cr.set_font_size(self.inner_r / 10.0)
             txt = "%d" % speed
             x_bearing, y_bearing, width, height, x_advance, y_advance = cr.text_extents(txt)
             cr.move_to(x * self.inner_r * 0.9 - width/2

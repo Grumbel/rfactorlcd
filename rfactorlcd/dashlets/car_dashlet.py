@@ -128,8 +128,9 @@ class CarDashlet(rfactorlcd.Dashlet):
 
                 for i in range(0, 3):
                     cr.set_source_rgb(*self.wheel_color(wheel, i))
-                    cr.rectangle(w_x, w_y,
-                                 (i+1)*wheel_w/3, wheel_h)
+                    offset = -8 if wheel in (0, 2) else 8
+                    cr.rectangle(w_x + i*wheel_w/3 + offset, w_y,
+                                 wheel_w/3, wheel_h)
                     cr.fill()
 
                     cr.set_font_size(12)

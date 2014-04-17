@@ -44,11 +44,14 @@ class PedalsDashlet(rfactorlcd.Dashlet):
                          self.w / 3, self.h)
         cr.stroke()
 
-        cr.set_source_rgb(*self.lcd_style.highlight_color)
+        pedal_colors = [(0, 1, 0),
+                        (1, 0, 0),
+                        (0, 0, 1)]
         for i, p in enumerate([self.throttle, self.brake, self.clutch]):
+            cr.set_source_rgb(*pedal_colors[i])
             cr.rectangle(self.w / 3 * i, (1.0 - p) * self.h,
                          self.w / 3, p * self.h)
-        cr.fill()
+            cr.fill()
 
 
 # EOF #
