@@ -127,6 +127,17 @@ class rFactorState(object):
         self.max_laps = 0
         self.lap_dist = 1.0
 
+        # score
+        self.game_phase = 0
+        self.yellow_flag_state = 0
+        self.sector_flag = [0, 0, 0]
+        self.start_light = 0
+        self.num_red_lights = 0
+        self.session = 0
+        self.current_e_t = 0.0
+        self.ambient_temp = 0.0
+        self.track_temp = 0.0
+
         # Backward compatibility hacks:
         self.speed = 0
         self.laptime = "1:23:45"
