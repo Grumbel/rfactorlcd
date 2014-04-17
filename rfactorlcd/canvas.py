@@ -174,7 +174,7 @@ class Rectangle(Item):
 
 class Text(Item):
 
-    def __init__(self, x, y, text,  alignment, font_style, **style):
+    def __init__(self, x, y, text,  alignment = None, font_style = None, **style):
         self.text = text
         self.x = x
         self.y = y
@@ -185,6 +185,11 @@ class Text(Item):
     def render(self, cr):
         x = self.x
         y = self.y
+
+        x_bearing, y_bearing, width, height, x_advance, y_advance = cr.text_extents(self.text)
+
+        self.w = width
+        self.h = height
 
         if self.alignment & (Alignment.LEFT | Alignment.RIGHT):
             x -= self.w / 2
