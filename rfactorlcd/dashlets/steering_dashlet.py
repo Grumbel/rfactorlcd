@@ -24,7 +24,7 @@ class SteeringDashlet(rfactorlcd.Dashlet):
     def __init__(self, *args):
         super(SteeringDashlet, self).__init__(*args)
         self.steering = 0
-        self.rotation = math.pi
+        self.rotation = math.pi / 2
 
     def update_state(self, state):
         if self.steering != state.steering:
