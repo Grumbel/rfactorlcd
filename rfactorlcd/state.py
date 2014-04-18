@@ -143,15 +143,14 @@ class rFactorState(object):
         self.laptime = "1:23:45"
 
     def on_telemetry(self, msg):
+        # missing: mDeltaTime
         self.lap_number = msg.read_int()
         self.lap_start_et = msg.read_float()
+        # missing: mVehicleName[64]
+        # missing: mTrackName[64]
 
         self.pos = msg.read_vect()
         self.local_vel = msg.read_vect()
-
-        # give speed in km/h
-        self.speed = -self.local_vel[2] * 3.6
-
         self.local_accel = msg.read_vect()
 
         self.ori_x = msg.read_vect()
@@ -179,8 +178,13 @@ class rFactorState(object):
         self.scheduled_stops = msg.read_char()
         self.overheating = msg.read_char()
         self.detached = msg.read_char()
-
         self.dent_severity = msg.read_multi_char(8)
+        # missing mLastImpactET
+        # missing mLastImpactMagnitude
+        # missing mLastImpactPos
+
+        # give speed in km/h
+        self.speed = -self.local_vel[2] * 3.6
 
         for i in range(0, 4):
             self.wheels[i].rotation = msg.read_float()
@@ -195,6 +199,7 @@ class rFactorState(object):
                                           msg.read_float(),
                                           msg.read_float()]
             self.wheels[i].wear = msg.read_float()
+            # missing: mTerrainName[16]
             self.wheels[i].surface_type = msg.read_char()
             self.wheels[i].flat = msg.read_char()
             self.wheels[i].detached = msg.read_char()
@@ -210,8 +215,6 @@ class rFactorState(object):
 
         for i in range(0, self.num_vehicles):
             self.vehicles[i].is_player = msg.read_char()
-            if self.vehicles[i].is_player:
-                self.player = self.vehicles[i]
             self.vehicles[i].control = msg.read_char()
 
             self.vehicles[i].driver_name = msg.read_string()
@@ -246,16 +249,35 @@ class rFactorState(object):
 
             self.vehicles[i].lap_start_et = msg.read_float()
 
+            # missing:  mPos
+            # missing:  mLocalVel
+            # missing:  mLocalAccel
+
+            # missing:  mOriX
+            # missing:  mOriY
+            # missing:  mOriZ
+            # missing:  mLocalRot
+            # missing:  mLocalRotAccel
+
+            if self.vehicles[i].is_player:
+                self.player = self.vehicles[i]
+
     def on_score(self, msg):
         self.game_phase = msg.read_char()
         self.yellow_flag_state = msg.read_char()
         self.sector_flag = msg.read_multi_char(3)
         self.start_light = msg.read_char()
         self.num_red_lights = msg.read_char()
+        # missing: mInRealtime
         self.session = msg.read_int()
         self.current_e_t = msg.read_float()
         self.ambient_temp = msg.read_float()
         self.track_temp = msg.read_float()
+        # missing: mDarkCloud
+        # missing: mRaining
+        # missing: mWind
+        # missing: mOnPathWetness
+        # missing: mOffPathWetness
 
     def on_info(self, msg):
         self.track_name = msg.read_string()
@@ -264,6 +286,7 @@ class rFactorState(object):
         self.end_e_t = msg.read_float()
         self.max_laps = msg.read_int()
         self.lap_dist = msg.read_float()
+        # missing mResultsStream
 
     def on_start_realtime(self, msg):
         pass
