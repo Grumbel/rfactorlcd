@@ -36,6 +36,8 @@ class CarDashlet(rfactorlcd.Dashlet):
     def update_state(self, state):
         self.dent_severity = state.dent_severity
         self.wheels = state.wheels
+        self.overheating = state.overheating
+        self.detached = state.detached
         self.queue_draw()
 
     def dent_color(self, part):
@@ -110,10 +112,24 @@ class CarDashlet(rfactorlcd.Dashlet):
         cr.fill()
 
         # draw car body
-        cr.set_source_rgb(*self.lcd_style.highlight_color)
+        cr.set_source_rgb(*self.lcd_style.shadow_color)
         gfx.rounded_rectangle(cr, 
                               0, 0, car_w, car_h,
                               (32, 32, 32, 32))
+        cr.fill()
+
+        if self.detached:
+            cr.set_source_rgb(*self.lcd_style.highlight_color)
+        else:
+            cr.set_source_rgb(*self.lcd_style.shadow_color)
+        cr.rectangle(0, car_h+30, car_w, 30)
+        cr.fill()
+
+        if self.overheating:
+            cr.set_source_rgb(*self.lcd_style.highlight_color)
+        else:
+            cr.set_source_rgb(*self.lcd_style.background_color)
+        cr.rectangle(car_w/2 - 30, 20, 60, 60)
         cr.fill()
 
         # draw wheels
@@ -142,10 +158,10 @@ class CarDashlet(rfactorlcd.Dashlet):
                                           rounding[i])
                     cr.fill()
 
-                    cr.set_font_size(12)
+                    cr.set_font_size(16)
                     cr.set_source_rgb(*self.lcd_style.foreground_color)
                     cr.move_to(w_x + i * wheel_w/1.5, w_y - 10)
-                    cr.show_text("%3.1f" % celsius(self.wheels[wheel].temperature[i]))
+                    cr.show_text("%3.0f" % celsius(self.wheels[wheel].temperature[i]))
 
                 force = self.wheels[wheel].lateral_force
                 cr.set_source_rgb(*self.lcd_style.highlight_color)
