@@ -181,9 +181,7 @@ class Rectangle(Item):
 
     def render(self, cr):
         cr.rectangle(self.x, self.y, self.w, self.h)
-        if self.style.stroke_color is not None:
-            cr.set_source_rgb(self.style.stroke_color)
-            cr.stroke()
+        self.style.render_path(cr)
 
 
 class Text(Item):

@@ -27,27 +27,27 @@ def rounded_rectangle(cr, x, y, w, h, radius):
 
     degrees = math.pi / 180.0
 
-    cr.new_sub_path();
+    cr.new_sub_path()
     if nw_r == 0:
         cr.move_to(x, y)
     else:
-        cr.arc(x + nw_r, y + nw_r, nw_r, 180 * degrees, 270 * degrees);
+        cr.arc(x + nw_r, y + nw_r, nw_r, 180 * degrees, 270 * degrees)
 
     if ne_r == 0:
         cr.line_to(x + w, y)
     else:
-        cr.arc(x + w - ne_r, y + ne_r, ne_r, -90 * degrees, 0 * degrees);
+        cr.arc(x + w - ne_r, y + ne_r, ne_r, -90 * degrees, 0 * degrees)
 
     if se_r == 0:
         cr.line_to(x + w, y + h)
     else:
-        cr.arc(x + w - se_r, y + h - se_r, se_r, 0 * degrees, 90 * degrees);
+        cr.arc(x + w - se_r, y + h - se_r, se_r, 0 * degrees, 90 * degrees)
 
     if sw_r == 0:
         cr.line_to(x, y + h)
-    else:    
-        cr.arc(x + sw_r, y + h - sw_r, sw_r, 90 * degrees, 180 * degrees);   
-    cr.close_path();
+    else:
+        cr.arc(x + sw_r, y + h - sw_r, sw_r, 90 * degrees, 180 * degrees)
+    cr.close_path()
 
 
 # EOF #

@@ -120,7 +120,7 @@ class Workspace(object):
                                                  config.getfloat(section, "w"),
                                                  config.getfloat(section, "h"))
                             dashlets.append(dashlet)
-                    except Exception as err:
+                    except Exception:
                         logging.exception("loading section '%s' failed", section)
                         raise
 

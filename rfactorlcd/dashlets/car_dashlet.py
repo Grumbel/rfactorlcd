@@ -113,7 +113,7 @@ class CarDashlet(rfactorlcd.Dashlet):
 
         # draw car body
         cr.set_source_rgb(*self.lcd_style.shadow_color)
-        gfx.rounded_rectangle(cr, 
+        gfx.rounded_rectangle(cr,
                               0, 0, car_w, car_h,
                               (32, 32, 32, 32))
         cr.fill()
@@ -152,7 +152,7 @@ class CarDashlet(rfactorlcd.Dashlet):
                 for i in range(0, 3):
                     cr.set_source_rgb(*self.wheel_color(wheel, i))
                     offset = -8 if wheel in (0, 2) else 8
-                    gfx.rounded_rectangle(cr, 
+                    gfx.rounded_rectangle(cr,
                                           w_x + i*wheel_w/3 + offset, w_y,
                                           wheel_w/3, wheel_h,
                                           rounding[i])
