@@ -4,4 +4,5 @@
 /.sconsign.dblite
 /logs/
 /old/
+/rfactorlcd-gui.log
 /rfactorlcdPlugin.dll
