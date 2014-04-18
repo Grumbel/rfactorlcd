@@ -143,7 +143,7 @@ class rFactorState(object):
         self.laptime = "1:23:45"
 
     def on_telemetry(self, msg):
-        # missing: mDeltaTime
+        self.delta_time = msg.read_float()
         self.lap_number = msg.read_int()
         self.lap_start_et = msg.read_float()
         # missing: mVehicleName[64]
@@ -179,9 +179,10 @@ class rFactorState(object):
         self.overheating = msg.read_char()
         self.detached = msg.read_char()
         self.dent_severity = msg.read_multi_char(8)
-        # missing mLastImpactET
-        # missing mLastImpactMagnitude
-        # missing mLastImpactPos
+
+        self.last_impact_e_t = msg.read_float()
+        self.last_impact_magnitude = msg.read_float()
+        self.last_impact_pos = msg.read_vect()
 
         # give speed in km/h
         self.speed = -self.local_vel[2] * 3.6
@@ -249,15 +250,15 @@ class rFactorState(object):
 
             self.vehicles[i].lap_start_et = msg.read_float()
 
-            # missing:  mPos
-            # missing:  mLocalVel
-            # missing:  mLocalAccel
+            self.vehicles[i].pos = msg.read_vect()
+            self.vehicles[i].local_vel = msg.read_vect()
+            self.vehicles[i].local_accel = msg.read_vect()
 
-            # missing:  mOriX
-            # missing:  mOriY
-            # missing:  mOriZ
-            # missing:  mLocalRot
-            # missing:  mLocalRotAccel
+            self.vehicles[i].ori_x = msg.read_vect()
+            self.vehicles[i].ori_y = msg.read_vect()
+            self.vehicles[i].ori_z = msg.read_vect()
+            self.vehicles[i].local_rot = msg.read_vect()
+            self.vehicles[i].local_rot_accel = msg.read_vect()
 
             if self.vehicles[i].is_player:
                 self.player = self.vehicles[i]
@@ -268,16 +269,16 @@ class rFactorState(object):
         self.sector_flag = msg.read_multi_char(3)
         self.start_light = msg.read_char()
         self.num_red_lights = msg.read_char()
-        # missing: mInRealtime
+        self.in_realtime = msg.read_char()
         self.session = msg.read_int()
         self.current_e_t = msg.read_float()
         self.ambient_temp = msg.read_float()
         self.track_temp = msg.read_float()
-        # missing: mDarkCloud
-        # missing: mRaining
-        # missing: mWind
-        # missing: mOnPathWetness
-        # missing: mOffPathWetness
+        self.dark_cloud = msg.read_float()
+        self.raining = msg.read_float()
+        self.wind = msg.read_vect()
+        self.on_path_wetness = msg.read_float()
+        self.off_path_wetness = msg.read_float()
 
     def on_info(self, msg):
         self.track_name = msg.read_string()

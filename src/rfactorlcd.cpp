@@ -491,6 +491,9 @@ rFactorLCDPlugin::UpdateTelemetry(const TelemInfoV2& info)
 
   NetworkMessage msg(TELEMETRY_TAG);
 
+  // FIXME: this isn't correct when skipping messages
+  msg.write_float(info.mDeltaTime);
+
   msg.write_int(info.mLapNumber);
   msg.write_float(info.mLapStartET);
 
@@ -528,6 +531,10 @@ rFactorLCDPlugin::UpdateTelemetry(const TelemInfoV2& info)
   {
     msg.write_char(info.mDentSeverity[i]);
   }
+
+  msg.write_float(info.mLastImpactET);
+  msg.write_float(info.mLastImpactMagnitude);
+  msg.write_vect(info.mLastImpactPos);
 
   for(int i = 0; i < 4; ++i)
   {
@@ -585,10 +592,16 @@ rFactorLCDPlugin::UpdateScoring(const ScoringInfoV2& info)
     msg.write_char(info.mSectorFlag[2]);
     msg.write_char(info.mStartLight);
     msg.write_char(info.mNumRedLights);
+    msg.write_char(info.mInRealtime);
     msg.write_int(info.mSession);
     msg.write_float(info.mCurrentET);
     msg.write_float(info.mAmbientTemp);
     msg.write_float(info.mTrackTemp);
+    msg.write_float(info.mDarkCloud);
+    msg.write_float(info.mRaining);
+    msg.write_vect(info.mWind);
+    msg.write_float(info.mOnPathWetness);
+    msg.write_float(info.mOffPathWetness);
     send_message(msg);
   }
   {
@@ -632,6 +645,16 @@ rFactorLCDPlugin::UpdateScoring(const ScoringInfoV2& info)
       msg.write_short(veh.mNumPenalties);
 
       msg.write_float(veh.mLapStartET);
+
+      msg.write_vect(veh.mPos);
+      msg.write_vect(veh.mLocalVel);
+      msg.write_vect(veh.mLocalAccel);
+
+      msg.write_vect(veh.mOriX);
+      msg.write_vect(veh.mOriY);
+      msg.write_vect(veh.mOriZ);
+      msg.write_vect(veh.mLocalRot);
+      msg.write_vect(veh.mLocalRotAccel);
     }
     send_message(msg);
   }
