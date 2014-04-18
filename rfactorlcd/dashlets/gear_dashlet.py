@@ -27,6 +27,11 @@ class GearDashlet(rfactorlcd.TextDashlet):
     def update_state(self, state):
         if self.gear != state.gear:
             self.gear = state.gear
-            self.text_item.text = str(self.gear)
+            if self.gear == -1:
+                self.text_item.text = "R"
+            elif self.gear == 0:
+                self.text_item.text = "N"
+            else:
+                self.text_item.text = str(self.gear)
 
 # EOF #
