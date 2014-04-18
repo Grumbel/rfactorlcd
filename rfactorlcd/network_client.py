@@ -60,26 +60,23 @@ class NetworkClient:
             try:
                 self.sock = None
                 self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                try:
-                    self.sock.connect((self.host, self.port))
-                    self.sock.setblocking(0)
-                    logging.info("connection successful: %s:%s", self.host, self.port)
 
-                    while not self._shutdown:
-                        self.update()
-                except socket.error as err:
-                    if err.errno == errno.ECONNREFUSED or \
-                       err.errno == errno.ECONNABORTED or \
-                       err.errno == errno.ECONNRESET:
-                        logging.info("couldn't connect, trying reconnect: %s:%s %s", self.host, self.port, err)
-                        time.sleep(1)
-                    else:
-                        raise
-                except ConnectionClosed as err:
-                    pass
+                self.sock.connect((self.host, self.port))
+                self.sock.setblocking(0)
+                logging.info("connection successful: %s:%s", self.host, self.port)
+
+                while not self._shutdown:
+                    self.update()
+            except socket.error as err:
+                logging.exception("couldn't connect, trying reconnect: %s:%s %s", self.host, self.port, err)
+            except ConnectionClosed as err:
+                logging.error("connection closed by server")
             finally:
                 if self.sock is not None:
                     self.sock.close()
+
+            # wait a moment before trying to reconnect
+            time.sleep(1)
 
     def release_data(self):
         self.lock.acquire()
