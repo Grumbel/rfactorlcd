@@ -165,7 +165,7 @@ class App(object):
         if args.config:
             self.lcd.workspace.load(args.config)
         else:
-            self.workspace.load_default()
+            self.lcd.workspace.load_default()
         widget.show()
         self.window.add(widget)
         self.window.present()
