@@ -28,6 +28,8 @@ class CarDashlet(rfactorlcd.Dashlet):
     def __init__(self, *args):
         super(CarDashlet, self).__init__(*args)
         self.dent_severity = [0, 0, 0, 0, 0, 0, 0, 0]
+        self.detached = False
+        self.overheating = False
         self.wheels = None
 
     def reshape(self, x, y, w, h):
