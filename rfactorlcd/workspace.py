@@ -16,6 +16,7 @@
 
 
 import ConfigParser
+import logging
 
 import rfactorlcd
 
@@ -95,7 +96,7 @@ class Workspace(object):
             config.write(fout)
 
     def load(self, filename):
-        print "loading workspace from %s" % filename
+        logging.info("loading workspace from %s", filename)
         dashlets = []
         try:
             config = ConfigParser.ConfigParser()
@@ -103,9 +104,9 @@ class Workspace(object):
             with open(filename, 'r') as fin:
                 config.readfp(fin)
 
-                print config.sections()
+                logging.debug(config.sections())
                 for section in config.sections():
-                    print "loading %s" % section
+                    logging.debug("loading %s", section)
                     try:
                         dashlet_type = config.get(section, "type")
                         dashlet_class = rfactorlcd.dashlets[dashlet_type]
@@ -120,7 +121,7 @@ class Workspace(object):
                                                  config.getfloat(section, "h"))
                             dashlets.append(dashlet)
                     except Exception as err:
-                        print "ERROR: %s" % err
+                        logging.exception("loading section '%s' failed", section)
                         raise
 
             # load successful

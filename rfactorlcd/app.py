@@ -16,9 +16,11 @@
 
 
 import argparse
-import gtk
 import glib
+import gtk
+import logging
 import threading
+import sys
 
 import rfactorlcd
 
@@ -122,7 +124,37 @@ class App(object):
                             help='PORT to connect to')
         parser.add_argument("-c", "--config", type=str,
                             help="Config file to load")
+        parser.add_argument("-v", "--verbose", action='store_true',
+                            help="Be more verbose")
+        parser.add_argument("--debug", action='store_true',
+                            help="Be even more verbose")
         args = parser.parse_args()
+
+        logger = logging.getLogger()
+        logger.setLevel(logging.DEBUG)
+
+        formatter = logging.Formatter("%(asctime)s [%(levelname)s] %(filename)s:%(lineno)s: %(message)s")
+
+        stream_handler = logging.StreamHandler(sys.stderr)
+        stream_handler.setFormatter(formatter)
+        if args.debug:
+            stream_handler.setLevel(logging.DEBUG)
+        elif args.verbose:
+            stream_handler.setLevel(logging.INFO)
+        else:
+            stream_handler.setLevel(logging.WARN)
+
+        logfile_handler = logging.FileHandler("rfactorlcd-gui.log", mode='w')
+        logfile_handler.setLevel(logging.DEBUG)
+        logfile_handler.setFormatter(formatter)
+
+        logger.addHandler(stream_handler)
+        logger.addHandler(logfile_handler)
+
+        logging.debug("Debug!")
+        logging.info("Info!")
+        logging.error("Err!")
+        logging.warning("Warn!")
 
         gtk.gdk.threads_init()
 
