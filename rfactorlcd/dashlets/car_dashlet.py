@@ -16,6 +16,7 @@
 
 
 import rfactorlcd
+import rfactorlcd.gfx as gfx
 
 
 def celsius(kelvin):
@@ -109,8 +110,10 @@ class CarDashlet(rfactorlcd.Dashlet):
         cr.fill()
 
         # draw car body
-        cr.set_source_rgb(*self.lcd_style.shadow_color)
-        cr.rectangle(0, 0, car_w, car_h)
+        cr.set_source_rgb(*self.lcd_style.highlight_color)
+        gfx.rounded_rectangle(cr, 
+                              0, 0, car_w, car_h,
+                              (32, 32, 32, 32))
         cr.fill()
 
         # draw wheels
@@ -126,11 +129,17 @@ class CarDashlet(rfactorlcd.Dashlet):
                 else:
                     w_x = car_w + wheel_w * 0.3
 
+                rounding = [(12.0, 0.0, 0.0, 12.0),
+                            (0.0, 0.0, 0.0, 0.0),
+                            (0.0, 12.0, 12.0, 0.0)]
+
                 for i in range(0, 3):
                     cr.set_source_rgb(*self.wheel_color(wheel, i))
                     offset = -8 if wheel in (0, 2) else 8
-                    cr.rectangle(w_x + i*wheel_w/3 + offset, w_y,
-                                 wheel_w/3, wheel_h)
+                    gfx.rounded_rectangle(cr, 
+                                          w_x + i*wheel_w/3 + offset, w_y,
+                                          wheel_w/3, wheel_h,
+                                          rounding[i])
                     cr.fill()
 
                     cr.set_font_size(12)
