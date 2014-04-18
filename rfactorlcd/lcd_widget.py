@@ -40,7 +40,6 @@ class LCDWidget(gtk.DrawingArea):
 
         self.workspace = rfactorlcd.Workspace()
         self.workspace.set_lcd_style(self.lcd_style)
-        self.workspace.load_default()
 
         self.active_dashlet = None
         self.drag_dashlet = None
