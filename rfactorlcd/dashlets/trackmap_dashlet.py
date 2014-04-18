@@ -15,6 +15,9 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
+import math
+import cairo
+
 import rfactorlcd
 
 
@@ -25,6 +28,10 @@ class TrackmapDashlet(rfactorlcd.Dashlet):
 
         self.vehicles = []
         self.lap_dist = 1.0
+        self.background = None
+
+    def reshape(self, x, y, w, h):
+        pass
 
     def update_state(self, state):
         self.vehicles = state.vehicles
@@ -32,7 +39,35 @@ class TrackmapDashlet(rfactorlcd.Dashlet):
         self.queue_draw()
 
     def draw(self, cr):
-        # need to add vehicle coordinates to the protocol
-        pass
+        if self.background is None:
+            self.background = cr.get_target().create_similar(cairo.CONTENT_COLOR, int(self.w), int(self.h))
+
+        cr.move_to(0, 0)
+        cr.set_source_surface(self.background)
+        cr.paint()
+
+        cr.new_path()
+        for veh in self.vehicles:
+            x = -veh.pos[0] / 5.0 + self.background.get_width()/2
+            y = -veh.pos[2] / 5.0 + self.background.get_height()/2
+
+            cr.arc(x, y, 2, 0, 2*math.pi)
+
+            if veh.is_player:
+                cr.set_source_rgb(*self.lcd_style.highlight_color)
+            else:
+                cr.set_source_rgb(*self.lcd_style.foreground_color)
+            cr.fill()
+
+        cr = cairo.Context(self.background)
+        for veh in self.vehicles:
+            x = -veh.pos[0] / 5.0 + self.background.get_width()/2
+            y = -veh.pos[2] / 5.0 + self.background.get_height()/2
+
+            cr.arc(x, y, 4, 0, 2*math.pi)
+
+            cr.set_source_rgb(*self.lcd_style.shadow_color)
+            cr.fill()
+
 
 # EOF #
