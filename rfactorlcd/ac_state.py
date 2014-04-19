@@ -16,19 +16,19 @@
 
 
 import struct
+import io
+
 
 def perc2py(text):
+    """Assetto Corsa strings end with a '%', not with a traditional '\0'"""
     return text.split(b'%', 1)[0]
 
-def asciz2py(asciz):
-    return asciz.split(b'\x00', 1)[0]
-
 def utf16topy(asciz):
-    return perc2py(asciz).decode("utf-16")
+    return perc2py(asciz).decode("utf-16").encode("latin-1")
+
 
 class HandshakeResponse:
     def __init__(self, data):
-        print "-----", len(data)
         (self.name,
          self.driver,
          self.identifier,
@@ -40,19 +40,40 @@ class HandshakeResponse:
         self.track_name = perc2py(self.track_name)
         self.track_config = perc2py(self.track_config)
 
+    def __str__(self):
+        sout = io.BytesIO()
+        print >>sout, "[Handshake]"
+        print >>sout, "name:", self.name
+        print >>sout, "driver:", self.driver
+        print >>sout, "id:", self.identifier
+        print >>sout, "version:", self.version
+        print >>sout, "track_name:", self.track_name
+        print >>sout, "track_config:", self.track_config
+        return sout.getvalue()
 
 class RTLap:
     def __init__(self, rawdata):
-        print "--------", len(rawdata)
-        data = struct.unpack("<II100s50sI2s", rawdata)
+        data = struct.unpack("<II100s50s2sI", rawdata)
         (self.carIdentifierNumber,
          self.lap,
          self.driverName,
          self.carName,
+         self.unknown,
          self.time,
-         self.rest) = data
+         ) = data
         self.driverName = utf16topy(self.driverName)
         self.carName = perc2py(self.carName)
+
+    def __str__(self):
+        sout = io.BytesIO()
+        print >>sout, "[Lap]"
+        print >>sout, "id:", self.carIdentifierNumber
+        print >>sout, "lap:", self.lap
+        print >>sout, "driver:", self.driverName
+        print >>sout, "carName:", self.carName
+        print >>sout, "time:", self.time
+        print >>sout, "unknown:", repr(self.unknown)
+        return sout.getvalue()
 
 class RTCarInfo:
     def __init__(self, rawdata):
@@ -110,6 +131,69 @@ class RTCarInfo:
         self.carPositionNormalized = data[83]
         self.carSlope = data[84]
         self.carCoordinates = data[85:88]
+
+    def __str__(self):
+        sout = io.BytesIO()
+
+        print >>sout, "[CarInfo]"
+        print >>sout, "id:", self.identifier
+        print >>sout, "size:", self.size
+        print >>sout, "km/h:",  self.speed_Kmh
+        print >>sout, "mps:", self.speed_Mph
+        print >>sout, "m/s:", self.speed_Ms
+
+        print >>sout, "isAbsEnabled:", self.isAbsEnabled
+        print >>sout, "isAbsInAction:", self.isAbsInAction
+        print >>sout, "isTcInAction:", self.isTcInAction
+        print >>sout, "isTcEnabled:", self.isTcEnabled
+        print >>sout, "isInPit:", self.isInPit
+        print >>sout, "isEngineLimiterOn:", self.isEngineLimiterOn
+
+        print >>sout, "accG_vertical:", self.accG_vertical
+        print >>sout, "accG_horizontal:", self.accG_horizontal
+        print >>sout, "accG_frontal:", self.accG_frontal
+
+        print >>sout, "lapTime:", self.lapTime
+        print >>sout, "lastLap:", self.lastLap
+        print >>sout, "bestLap:", self.bestLap
+        print >>sout, "lapCount:", self.lapCount
+
+        print >>sout, "unknown:", self.unknown
+
+        print >>sout, "gas:", self.gas
+        print >>sout, "brake:", self.brake
+        print >>sout, "clutch:", self.clutch
+        print >>sout, "engineRPM:", self.engineRPM
+        print >>sout, "steer:", self.steer
+        print >>sout, "gear:", self.gear
+        print >>sout, "cgHeight:", self.cgHeight
+
+        print >>sout, "wheelAngularSpeed:", self.wheelAngularSpeed
+        print >>sout, "slipAngle:", self.slipAngle
+        print >>sout, "slipAngle_ContactPatch:", self.slipAngle_ContactPatch
+
+        print >>sout, "wheelAngularSpeed:", self.wheelAngularSpeed
+        print >>sout, "slipAngle:", self.slipAngle
+        print >>sout, "slipAngle_ContactPatch:", self.slipAngle_ContactPatch
+        print >>sout, "slipRatio:", self.slipRatio
+        print >>sout, "tyreSlip:", self.tyreSlip
+        print >>sout, "ndSlip:", self.ndSlip
+        print >>sout, "load:", self.load
+        print >>sout, "Dy:", self.Dy
+        print >>sout, "Mz:", self.Mz
+        print >>sout, "tyreDirtyLevel:", self.tyreDirtyLevel
+
+        print >>sout, "camberRAD:", self.camberRAD
+        print >>sout, "tyreRadius:", self.tyreRadius
+        print >>sout, "tyreLoadedRadius:", self.tyreLoadedRadius
+
+        print >>sout, "suspensionHeight:", self.suspensionHeight
+
+        print >>sout, "carPositionNormalized:", self.carPositionNormalized
+        print >>sout, "carSlope:", self.carSlope
+        print >>sout, "carCoordinates:", self.carCoordinates
+
+        return sout.getvalue()
 
 
 # EOF #
