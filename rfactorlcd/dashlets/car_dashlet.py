@@ -61,7 +61,8 @@ class CarDashlet(rfactorlcd.Dashlet):
             temp = celsius(self.wheels[wheel].temperature[side])
             blue = 1.0 - min(max(0.0, float(temp - 70) / (120 - 70)), 1.0)
             red = min(max(0.0, float(temp - 30) / (70 - 30)), 1.0)
-            return (red, 0, blue)
+            green = min(max(0.0, float(temp - 100) / (150 - 100)), 1.0)
+            return (red, green, blue)
 
     def draw(self, cr):
         car_w = 150
