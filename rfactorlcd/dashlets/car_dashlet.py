@@ -17,6 +17,7 @@
 
 import rfactorlcd
 import rfactorlcd.gfx as gfx
+import rfactorlcd.canvas as canvas
 
 
 def celsius(kelvin):
@@ -32,8 +33,127 @@ class CarDashlet(rfactorlcd.Dashlet):
         self.overheating = False
         self.wheels = None
 
+        car_w = self.car_w = 150
+        car_h = self.car_h = 300
+
+        wheel_w = self.wheel_w = 60
+        wheel_h = self.wheel_h = 80
+
+        self.group = canvas.Group()
+
+        self.gfx_dent = [
+            # front
+            self.group.add_rectangle(30, -20, car_w - 60, 20,
+                                     stroke_color=(0,0,0),
+                                     fill_color=self.dent_color(0)),
+            # front/left
+            self.group.add_rounded_rectangle(-20, -20, 60, 80,
+                                             (32, 0, 0, 0),
+                                             stroke_color=(0,0,0),
+                                             fill_color=self.dent_color(1)),
+            # left side
+            self.group.add_rectangle(-20, 60, 20, car_h - 120,
+                                     stroke_color=(0,0,0),
+                                     fill_color=self.dent_color(2)),
+            # back/left
+            self.group.add_rounded_rectangle(-20, car_h-60, 60, 80,
+                                             (0, 0, 0, 32),
+                                             stroke_color=(0,0,0),
+                                             fill_color=self.dent_color(3)),
+            # back
+            self.group.add_rectangle(30, car_h, car_w - 60, 20,
+                                     stroke_color=(0,0,0),
+                                     fill_color=self.dent_color(4)),
+            # back/right
+            self.group.add_rounded_rectangle(car_w-40, car_h-60, 60, 80,
+                                             (0, 0, 32, 0),
+                                             stroke_color=(0,0,0),
+                                             fill_color=self.dent_color(5)),
+            # right side
+            self.group.add_rectangle(car_w, 60, 20, car_h-120,
+                                     stroke_color=(0,0,0),
+                                     fill_color=self.dent_color(6)),
+            # front/right
+            self.group.add_rounded_rectangle(car_w-40, -20, 60, 80,
+                                             (0, 32, 0, 0),
+                                             stroke_color=(0,0,0),
+                                             fill_color=self.dent_color(7)),
+        ]
+
+        # car body
+        self.gfx_body = self.group.add_rounded_rectangle(0, 0, car_w, car_h, (32, 32, 32, 32),
+                                                         line_width=3.0,
+                                                         stroke_color=(0, 0, 0),
+                                                         fill_color=self.lcd_style.shadow_color)
+
+        def make_wheel(root, wheel):
+            if wheel in (0, 1):
+                w_y = 0
+            else:
+                w_y = car_h - wheel_h
+
+            if wheel in (0, 2):
+                w_x = -wheel_w * 1.3
+            else:
+                w_x = car_w + wheel_w * 0.3
+
+            rounding = [(12.0, 0.0, 0.0, 12.0),
+                        (0.0, 0.0, 0.0, 0.0),
+                        (0.0, 12.0, 12.0, 0.0)]
+
+            group = root.add_group()
+
+            parts = []
+            for i in range(0, 3):
+                offset = -8 if wheel in (0, 2) else 8
+                parts.append((group.add_rounded_rectangle(w_x + i*wheel_w/3 + offset, w_y,
+                                                          wheel_w/3, wheel_h,
+                                                          rounding[i],
+                                                          stroke_color=None,
+                                                          fill_color=(1,1,1)),
+
+                              group.add_text(w_x + wheel_w/2 + offset*1.5 + (i - 1) * 32,
+                                             w_y - (10 if wheel in (0, 1) else -wheel_h - 20),
+                                            "Temp",
+                                             anchor=canvas.Anchor.S,
+                                             font_size=16,
+                                             fill_color=self.lcd_style.foreground_color)))
+
+                flat = group.add_rounded_rectangle(w_x + offset, w_y,
+                                                   wheel_w, wheel_h,
+                                                   (12.0, 12.0, 12.0, 12.0),
+                                                   stroke_color=(0.0, 1.0, 1.0),
+                                                   line_width=8.0)
+                flat.visible = False
+
+            status = group.add_text(w_x + wheel_w/2 + (-60 if wheel in (0, 2) else 60),
+                                    w_y + wheel_h/2 - 8,
+                                    "-#-",
+                                    anchor=canvas.Anchor.S,
+                                    font_size=14,
+                                    fill_color=self.lcd_style.foreground_color)
+            group.add_text(w_x + wheel_w/2 + (-60 if wheel in (0, 2) else 60),
+                           w_y + wheel_h/2 + 8,
+                           "kPa",
+                           anchor=canvas.Anchor.S,
+                           font_size=14,
+                           fill_color=self.lcd_style.foreground_color)
+            return (parts, flat, status)
+
+        self.gfx_wheels = [make_wheel(self.group, 0),
+                           make_wheel(self.group, 1),
+                           make_wheel(self.group, 2),
+                           make_wheel(self.group, 3)]
+
+        self.gfx_engine = self.group.add_rectangle(car_w/2 - 30, 30, 60, 60,
+                                                   line_width=3.0,
+                                                   stroke_color=(0, 0, 0))
+
     def reshape(self, x, y, w, h):
-        pass
+        scale = min(w, h) / 400.0
+        self.group.translate = (self.w/2 - self.car_w/2 * scale,
+                                self.h/2 - self.car_h/2 * scale)
+        self.group.scale = (scale, scale)
 
     def update_state(self, state):
         self.dent_severity = state.dent_severity
@@ -41,6 +161,28 @@ class CarDashlet(rfactorlcd.Dashlet):
         self.overheating = state.overheating
         self.detached = state.detached
         self.queue_draw()
+
+        for i, item in enumerate(self.gfx_dent):
+            item.style.fill_color = self.dent_color(i)
+
+        for i, (parts, flat, status) in enumerate(self.gfx_wheels):
+            flat.visible = self.wheels[i].flat
+            for j, (wheel_section, temp) in enumerate(parts):
+                temp.text = "%3.0f" % celsius(self.wheels[i].temperature[j])
+                wheel_section.style.fill_color = self.wheel_color(i, j)
+
+            status.text = "%3.0f" % self.wheels[i].pressure
+
+        if self.overheating:
+            self.gfx_engine.style.fill_color = (1, 0, 0)
+        else:
+            self.gfx_engine.style.fill_color = (0, 1, 0)
+
+        if self.detached:
+            self.gfx_body.style.fill_color = (1, 0, 0)
+        else:
+            self.gfx_body.style.fill_color = (0.5, 0.5, 0.5)
+
 
     def dent_color(self, part):
         severity = self.dent_severity[part]
@@ -65,124 +207,7 @@ class CarDashlet(rfactorlcd.Dashlet):
             return (red, green, blue)
 
     def draw(self, cr):
-        car_w = 150
-        car_h = 300
+        self.group.render(cr)
 
-        wheel_w = 60
-        wheel_h = 80
-
-        cr.save()
-        cr.translate(self.w/2 - car_w/2,
-                     self.h/2 - car_h/2)
-
-        # draw dentable body parts
-
-        # front
-        cr.set_source_rgb(*self.dent_color(0))
-        cr.rectangle(30, -20, car_w - 60, 20)
-        cr.fill()
-
-        # back
-        cr.set_source_rgb(*self.dent_color(4))
-        cr.rectangle(30, car_h, car_w - 60, 20)
-        cr.fill()
-
-        # left side
-        cr.set_source_rgb(*self.dent_color(2))
-        cr.rectangle(-20, 40, 20, car_h - 80)
-        cr.fill()
-
-        # right side
-        cr.set_source_rgb(*self.dent_color(6))
-        cr.rectangle(car_w, 40, 20, car_h - 80)
-        cr.fill()
-
-        # front/left
-        cr.set_source_rgb(*self.dent_color(1))
-        cr.rectangle(-20, -20, 60, 80)
-        cr.fill()
-
-        # front/right
-        cr.set_source_rgb(*self.dent_color(7))
-        cr.rectangle(car_w-40, -20, 60, 80)
-        cr.fill()
-
-        # back/left
-        cr.set_source_rgb(*self.dent_color(3))
-        cr.rectangle(-20, car_h-60, 60, 80)
-        cr.fill()
-
-        # back/right
-        cr.set_source_rgb(*self.dent_color(5))
-        cr.rectangle(car_w-40, car_h-60, 60, 80)
-        cr.fill()
-
-        # draw car body
-        cr.set_source_rgb(*self.lcd_style.shadow_color)
-        gfx.rounded_rectangle(cr,
-                              0, 0, car_w, car_h,
-                              (32, 32, 32, 32))
-        cr.fill()
-
-        if self.detached:
-            cr.set_source_rgb(*self.lcd_style.highlight_color)
-        else:
-            cr.set_source_rgb(*self.lcd_style.shadow_color)
-        cr.rectangle(0, car_h+30, car_w, 30)
-        cr.fill()
-
-        if self.overheating:
-            cr.set_source_rgb(*self.lcd_style.highlight_color)
-        else:
-            cr.set_source_rgb(*self.lcd_style.background_color)
-        cr.rectangle(car_w/2 - 30, 20, 60, 60)
-        cr.fill()
-
-        # draw wheels
-        if self.wheels:
-            for wheel in range(0, 4):
-                if wheel in (0, 1):
-                    w_y = 0
-                else:
-                    w_y = car_h - wheel_h
-
-                if wheel in (0, 2):
-                    w_x = -wheel_w * 1.3
-                else:
-                    w_x = car_w + wheel_w * 0.3
-
-                rounding = [(12.0, 0.0, 0.0, 12.0),
-                            (0.0, 0.0, 0.0, 0.0),
-                            (0.0, 12.0, 12.0, 0.0)]
-
-                for i in range(0, 3):
-                    cr.set_source_rgb(*self.wheel_color(wheel, i))
-                    offset = -8 if wheel in (0, 2) else 8
-                    gfx.rounded_rectangle(cr,
-                                          w_x + i*wheel_w/3 + offset, w_y,
-                                          wheel_w/3, wheel_h,
-                                          rounding[i])
-                    cr.fill()
-
-                    cr.set_font_size(16)
-                    cr.set_source_rgb(*self.lcd_style.foreground_color)
-                    cr.move_to(w_x + i * wheel_w/1.5, w_y - 10)
-                    cr.show_text("%3.0f" % celsius(self.wheels[wheel].temperature[i]))
-
-                force = self.wheels[wheel].lateral_force
-                cr.set_source_rgb(*self.lcd_style.highlight_color)
-                cr.rectangle(w_x + wheel_w/2,
-                             w_y + wheel_h/2 - 10,
-                             wheel_w * force/8000.0, 20)
-                cr.fill()
-
-                force = self.wheels[wheel].rotation
-                cr.set_source_rgb(*self.lcd_style.highlight_color)
-                cr.rectangle(w_x + wheel_w/2 - 10,
-                             w_y + wheel_h/2,
-                             20, wheel_h * force/150.0)
-                cr.fill()
-
-        cr.restore()
 
 # EOF #

@@ -17,6 +17,7 @@
 
 # import cairo
 import math
+import rfactorlcd.gfx as gfx
 
 
 class Alignment:
@@ -49,30 +50,33 @@ class Style(object):
         self.stroke_color = (1, 1, 1)
 
     def merge(self, style):
-        self.line_width = style.get('line_width')
-        self.fill_color = style.get('fill_color')
-        self.stroke_color = style.get('stroke_color')
+        self.line_width = style.get('line_width', self.line_width)
+        self.fill_color = style.get('fill_color', self.fill_color)
+        self.stroke_color = style.get('stroke_color', self.stroke_color)
 
     def render_path(self, cr):
         cr.set_line_width(self.line_width)
 
         if self.fill_color is not None:
-            self.apply_fill_color(cr)
+            cr.set_source_rgb(*self.fill_color)
             if self.stroke_color is not None:
                 cr.fill_preserve()
             else:
                 cr.fill()
 
         if self.stroke_color is not None:
-            self.apply_stroke_color(cr)
+            cr.set_source_rgb(*self.stroke_color)
             cr.stroke()
 
 
 class Item(object):
 
-    def __init__(self):
+    def __init__(self, **style):
         self.invalidated = True
+        self.visible = True
         self.recalc_bounds()
+        self.style = Style()
+        self.style.merge(style)
 
     def recalc_bounds(self):
         self.x = 0
@@ -89,23 +93,41 @@ class Item(object):
 
     def render(self, cr):
         self.invalidated = False
+        if self.visible:
+            self._render(cr)
+
+    def _render(self, cr):
+        raise NotImplementedError()
 
 
 class Group(Item):
 
-    def __init__(self):
+    def __init__(self, **style):
+        super(Group, self).__init__(**style)
         self.children = []
+        self.translate = None
+        self.scale = None
+
+    def add_group(self):
+        child = Group()
+        self.add_child(child)
+        return child
 
     def add_child(self, child):
         self.children.append(child)
 
-    def add_text(self, x, y, text, anchor=Anchor.NW, font_style=None, **style):
-        child = Text(x, y, text, anchor, font_style, **style)
+    def add_text(self, x, y, text, anchor=Anchor.NW, font_size=None, **style):
+        child = Text(x, y, text, anchor, font_size, **style)
         self.add_child(child)
         return child
 
     def add_rectangle(self, x, y, w, h, **style):
         child = Rectangle(x, y, w, h, **style)
+        self.add_child(child)
+        return child
+
+    def add_rounded_rectangle(self, x, y, w, h, radius, **style):
+        child = RoundedRectangle(x, y, w, h, radius, **style)
         self.add_child(child)
         return child
 
@@ -115,10 +137,18 @@ class Group(Item):
     def add_arc(self, x, y, r, start=0, end=2*math.pi, **style):
         pass
 
-    def render(self, cr):
+    def _render(self, cr):
+        cr.save()
+
+        if self.translate is not None:
+            cr.translate(*self.translate)
+
+        if self.scale is not None:
+            cr.scale(*self.scale)
+
         for child in self.children:
             child.render(cr)
-
+        cr.restore()
 
 class Path(Item):
 
@@ -165,7 +195,7 @@ class Path(Item):
             else:
                 raise RuntimeError("unknown path command: '%s' - %s" % (cmd, params))
 
-    def render(self, cr):
+    def _render(self, cr):
         self.make_path()
         self.style.render_path(cr)
 
@@ -179,18 +209,35 @@ class Rectangle(Item):
         self.w = w
         self.h = h
 
-    def render(self, cr):
+    def _render(self, cr):
         cr.rectangle(self.x, self.y, self.w, self.h)
+        self.style.render_path(cr)
+
+
+class RoundedRectangle(Item):
+
+    def __init__(self, x, y, w, h, radius, **style):
+        super(RoundedRectangle, self).__init__(**style)
+        self.x = x
+        self.y = y
+        self.w = w
+        self.h = h
+        self.radius = radius
+
+    def _render(self, cr):
+        gfx.rounded_rectangle(cr, self.x, self.y, self.w, self.h, self.radius)
         self.style.render_path(cr)
 
 
 class Text(Item):
 
-    def __init__(self, x, y, text,  anchor=Anchor.NW, font_style=None, **style):
+    def __init__(self, x, y, text,  anchor=Anchor.NW, font_size=16, **style):
+        super(Text, self).__init__(**style)
         self._text = text
         self.x = x
         self.y = y
         self.anchor = anchor
+        self.font_size = font_size
 
     @property
     def text(self):
@@ -200,7 +247,9 @@ class Text(Item):
     def text(self, text):
         self._text = text
 
-    def render(self, cr):
+    def _render(self, cr):
+        cr.set_font_size(self.font_size)
+
         x_bearing, y_bearing, width, height, x_advance, y_advance = cr.text_extents(self._text)
 
         x = self.x
@@ -223,6 +272,10 @@ class Text(Item):
         else:
             y -= self.h/2
 
+        if self.style.fill_color is None:
+            cr.set_source_rgb(1, 1, 1)
+        else:
+            cr.set_source_rgb(*self.style.fill_color)
         cr.move_to(x - x_bearing,
                    y - y_bearing)
         cr.show_text(self._text)
