@@ -142,6 +142,15 @@ class rFactorState(object):
         self.speed = 0
         self.laptime = "1:23:45"
 
+    @property
+    def best_lap_time(self):
+        best = self.vehicles[0]
+        for veh in self.vehicles[1:]:
+            if veh.best_lap_time < best:
+                best = veh.best_lap_time
+                self.best_lap_driver = veh.driver_name  # FIXME: hack
+        return best
+
     def on_telemetry(self, msg):
         self.delta_time = msg.read_float()
         self.lap_number = msg.read_int()
