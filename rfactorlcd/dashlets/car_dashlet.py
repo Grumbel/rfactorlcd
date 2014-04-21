@@ -26,7 +26,9 @@ def celsius(kelvin):
     return kelvin - 273.15
 
 def wear_color(v):
-    return (1.0 - v, v, 0)
+    return (max(0.0, min(1.0, v * -2.0 + 2.0)),
+            max(0.0, min(1.0, v * 2.0)),
+            0)
 
 
 class CarDashlet(rfactorlcd.Dashlet):
