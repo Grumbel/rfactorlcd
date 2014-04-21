@@ -165,7 +165,7 @@ class CarDashlet(rfactorlcd.Dashlet):
                                    anchor=canvas.Anchor.S,
                                    font_size=16,
                                    fill_color=self.lcd_style.foreground_color)
-            
+
             return (parts, flat, wear, brake, status)
 
         self.gfx_wheels = [make_wheel(self.group, 0),
@@ -176,26 +176,39 @@ class CarDashlet(rfactorlcd.Dashlet):
         self.gfx_engine = self.group.add_rectangle(car_w/2 - 30, 30, 60, 60,
                                                    line_width=3.0,
                                                    stroke_color=(0, 0, 0))
-        
+
         self.group.add_text(-100, car_h/2 - 12,
-                            "Oil", 
+                            "Water",
                             anchor=canvas.Anchor.S,
                             font_size=16)
-        self.gfx_oil = self.group.add_text(-100,
+        self.gfx_water = self.group.add_text(-100,
+                                             car_h/2 + 12,
+                                             "Temp",
+                                             anchor=canvas.Anchor.S,
+                                             font_size=16)
+
+        self.group.add_text(car_w + 100, car_h/2 - 12,
+                            "Oil",
+                            anchor=canvas.Anchor.S,
+                            font_size=16)
+        self.gfx_oil = self.group.add_text(car_w + 100,
                                            car_h/2 + 12,
                                            "Temp",
                                            anchor=canvas.Anchor.S,
                                            font_size=16)
 
-        self.group.add_text(car_w + 100, car_h/2 - 12,
-                            "Water", 
+        self.group.add_rectangle(car_w/2, car_h - 80 + 4, 80, 60,
+                                 anchor=canvas.Anchor.CENTER,
+                                 stroke_color=None,
+                                 fill_color=(0,0,0))
+        self.group.add_text(car_w/2, car_h - 80,
+                            "Fuel",
                             anchor=canvas.Anchor.S,
                             font_size=16)
-        self.gfx_water = self.group.add_text(car_w + 100,
-                                             car_h/2 + 12,
-                                             "Temp",
-                                             anchor=canvas.Anchor.S,
-                                             font_size=16)
+        self.gfx_fuel = self.group.add_text(car_w/2, car_h - 62,
+                                            "0L",
+                                            anchor=canvas.Anchor.S,
+                                            font_size=16)
 
 
     def reshape(self, x, y, w, h):
@@ -238,7 +251,7 @@ class CarDashlet(rfactorlcd.Dashlet):
 
         self.gfx_oil.text = "%3.0f°" % state.oil_temp
         self.gfx_water.text = "%3.0f°" % state.water_temp
-
+        self.gfx_fuel.text = "%3.1fL" % state.fuel
 
     def dent_color(self, part):
         severity = self.dent_severity[part]
