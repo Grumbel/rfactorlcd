@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+#
 # rFactor Remote LCD
 # Copyright (C) 2014 Ingo Ruhnke <grumbel@gmail.com>
 #
@@ -22,6 +24,9 @@ import rfactorlcd.canvas as canvas
 
 def celsius(kelvin):
     return kelvin - 273.15
+
+def wear_color(v):
+    return (1.0 - v, v, 0)
 
 
 class CarDashlet(rfactorlcd.Dashlet):
@@ -113,7 +118,7 @@ class CarDashlet(rfactorlcd.Dashlet):
                                                           fill_color=(1,1,1)),
 
                               group.add_text(w_x + wheel_w/2 + offset*1.5 + (i - 1) * 32,
-                                             w_y - (10 if wheel in (0, 1) else -wheel_h - 20),
+                                             w_y - (15 if wheel in (0, 1) else -wheel_h - 25),
                                             "Temp",
                                              anchor=canvas.Anchor.S,
                                              font_size=16,
@@ -126,19 +131,33 @@ class CarDashlet(rfactorlcd.Dashlet):
                                                    line_width=8.0)
                 flat.visible = False
 
-            status = group.add_text(w_x + wheel_w/2 + (-60 if wheel in (0, 2) else 60),
+            status = group.add_text(w_x + wheel_w/2 + (-85 if wheel in (0, 2) else 85),
                                     w_y + wheel_h/2 - 8,
                                     "-#-",
                                     anchor=canvas.Anchor.S,
                                     font_size=14,
                                     fill_color=self.lcd_style.foreground_color)
-            group.add_text(w_x + wheel_w/2 + (-60 if wheel in (0, 2) else 60),
+            group.add_text(w_x + wheel_w/2 + (-85 if wheel in (0, 2) else 85),
                            w_y + wheel_h/2 + 8,
                            "kPa",
                            anchor=canvas.Anchor.S,
                            font_size=14,
                            fill_color=self.lcd_style.foreground_color)
-            return (parts, flat, status)
+
+            group.add_rectangle(w_x + wheel_w/2 + (-55 if wheel in (0, 2) else 55) - 8,
+                                w_y + wheel_h,
+                                16, wheel_h,
+                                anchor=canvas.Anchor.SW,
+                                stroke_color=self.lcd_style.shadow_color,
+                                fill_color=None)
+            wear = group.add_rectangle(w_x + wheel_w/2 + (-55 if wheel in (0, 2) else 55) - 8,
+                                       w_y + wheel_h,
+                                       16, wheel_h,
+                                       anchor=canvas.Anchor.SW,
+                                       stroke_color=None,
+                                       fill_color=(1,0,0))
+            
+            return (parts, flat, wear, status)
 
         self.gfx_wheels = [make_wheel(self.group, 0),
                            make_wheel(self.group, 1),
@@ -148,6 +167,27 @@ class CarDashlet(rfactorlcd.Dashlet):
         self.gfx_engine = self.group.add_rectangle(car_w/2 - 30, 30, 60, 60,
                                                    line_width=3.0,
                                                    stroke_color=(0, 0, 0))
+        
+        self.group.add_text(-64, car_h/2 - 12,
+                            "Oil", 
+                            anchor=canvas.Anchor.S,
+                            font_size=16)
+        self.gfx_oil = self.group.add_text(-64,
+                                           car_h/2 + 12,
+                                           "Temp",
+                                           anchor=canvas.Anchor.S,
+                                           font_size=16)
+
+        self.group.add_text(car_w + 64, car_h/2 - 12,
+                            "Water", 
+                            anchor=canvas.Anchor.S,
+                            font_size=16)
+        self.gfx_water = self.group.add_text(car_w + 64,
+                                             car_h/2 + 12,
+                                             "Temp",
+                                             anchor=canvas.Anchor.S,
+                                             font_size=16)
+
 
     def reshape(self, x, y, w, h):
         scale = min(w, h) / 400.0
@@ -165,13 +205,15 @@ class CarDashlet(rfactorlcd.Dashlet):
         for i, item in enumerate(self.gfx_dent):
             item.style.fill_color = self.dent_color(i)
 
-        for i, (parts, flat, status) in enumerate(self.gfx_wheels):
+        for i, (parts, flat, wear, status) in enumerate(self.gfx_wheels):
             flat.visible = self.wheels[i].flat
             for j, (wheel_section, temp) in enumerate(parts):
                 temp.text = "%3.0f" % celsius(self.wheels[i].temperature[j])
                 wheel_section.style.fill_color = self.wheel_color(i, j)
 
             status.text = "%3.0f" % self.wheels[i].pressure
+            wear.h = self.wheel_h * self.wheels[i].wear
+            wear.style.fill_color = wear_color(self.wheels[i].wear)
 
         if self.overheating:
             self.gfx_engine.style.fill_color = (1, 0, 0)
@@ -182,6 +224,9 @@ class CarDashlet(rfactorlcd.Dashlet):
             self.gfx_body.style.fill_color = (1, 0, 0)
         else:
             self.gfx_body.style.fill_color = (0.5, 0.5, 0.5)
+
+        self.gfx_oil.text = "%3.0f°" % state.oil_temp
+        self.gfx_water.text = "%3.0f°" % state.water_temp
 
 
     def dent_color(self, part):
