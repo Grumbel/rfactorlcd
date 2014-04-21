@@ -158,8 +158,15 @@ class CarDashlet(rfactorlcd.Dashlet):
                                        anchor=canvas.Anchor.SW,
                                        stroke_color=None,
                                        fill_color=(1,0,0))
+
+            brake = group.add_text(w_x + wheel_w/2,
+                                   w_y + wheel_h/2 + 8 + (60 if wheel in (0, 1) else -60),
+                                   "99°",
+                                   anchor=canvas.Anchor.S,
+                                   font_size=16,
+                                   fill_color=self.lcd_style.foreground_color)
             
-            return (parts, flat, wear, status)
+            return (parts, flat, wear, brake, status)
 
         self.gfx_wheels = [make_wheel(self.group, 0),
                            make_wheel(self.group, 1),
@@ -170,21 +177,21 @@ class CarDashlet(rfactorlcd.Dashlet):
                                                    line_width=3.0,
                                                    stroke_color=(0, 0, 0))
         
-        self.group.add_text(-64, car_h/2 - 12,
+        self.group.add_text(-100, car_h/2 - 12,
                             "Oil", 
                             anchor=canvas.Anchor.S,
                             font_size=16)
-        self.gfx_oil = self.group.add_text(-64,
+        self.gfx_oil = self.group.add_text(-100,
                                            car_h/2 + 12,
                                            "Temp",
                                            anchor=canvas.Anchor.S,
                                            font_size=16)
 
-        self.group.add_text(car_w + 64, car_h/2 - 12,
+        self.group.add_text(car_w + 100, car_h/2 - 12,
                             "Water", 
                             anchor=canvas.Anchor.S,
                             font_size=16)
-        self.gfx_water = self.group.add_text(car_w + 64,
+        self.gfx_water = self.group.add_text(car_w + 100,
                                              car_h/2 + 12,
                                              "Temp",
                                              anchor=canvas.Anchor.S,
@@ -207,7 +214,7 @@ class CarDashlet(rfactorlcd.Dashlet):
         for i, item in enumerate(self.gfx_dent):
             item.style.fill_color = self.dent_color(i)
 
-        for i, (parts, flat, wear, status) in enumerate(self.gfx_wheels):
+        for i, (parts, flat, wear, brake, status) in enumerate(self.gfx_wheels):
             flat.visible = self.wheels[i].flat
             for j, (wheel_section, temp) in enumerate(parts):
                 temp.text = "%3.0f" % celsius(self.wheels[i].temperature[j])
@@ -216,6 +223,8 @@ class CarDashlet(rfactorlcd.Dashlet):
             status.text = "%3.0f" % self.wheels[i].pressure
             wear.h = self.wheel_h * self.wheels[i].wear
             wear.style.fill_color = wear_color(self.wheels[i].wear)
+
+            brake.text = "%3.0f°" % celsius(self.wheels[i].brake_temp)
 
         if self.overheating:
             self.gfx_engine.style.fill_color = (1, 0, 0)
