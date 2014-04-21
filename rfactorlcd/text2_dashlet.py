@@ -32,10 +32,10 @@ class Text2Dashlet(rfactorlcd.Dashlet):
         self.left_item.y = h/2
         self.right_item.x = w
         self.right_item.y = h/2
+        self.left_item.font_size = h
+        self.right_item.font_size = h
 
     def draw(self, cr):
-        cr.set_font_size(self.h)
-        cr.set_source_rgb(*self.lcd_style.foreground_color)
         self.left_item.render(cr)
         self.right_item.render(cr)
 

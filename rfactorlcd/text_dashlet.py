@@ -28,10 +28,9 @@ class TextDashlet(rfactorlcd.Dashlet):
     def reshape(self, x, y, w, h):
         self.text_item.x = w/2
         self.text_item.y = h/2
+        self.text_item.font_size = h
 
     def draw(self, cr):
-        cr.set_source_rgb(*self.lcd_style.foreground_color)
-        cr.set_font_size(self.h)
         self.text_item.render(cr)
 
 
