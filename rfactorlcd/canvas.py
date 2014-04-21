@@ -202,15 +202,33 @@ class Path(Item):
 
 class Rectangle(Item):
 
-    def __init__(self, x, y, w, h, **style):
+    def __init__(self, x, y, w, h, anchor=Anchor.NW, **style):
         super(Rectangle, self).__init__(**style)
         self.x = x
         self.y = y
         self.w = w
         self.h = h
+        self.anchor=anchor
 
     def _render(self, cr):
-        cr.rectangle(self.x, self.y, self.w, self.h)
+        x = self.x
+        y = self.y
+
+        if self.anchor & Anchor.W:
+            x += 0
+        elif self.anchor & Anchor.E:
+            x -= self.w
+        else:
+            x -= self.w/2
+
+        if self.anchor & Anchor.N:
+            y += 0
+        elif self.anchor & Anchor.S:
+            y -= self.h
+        else:
+            y -= self.h/2
+
+        cr.rectangle(x, y, self.w, self.h)
         self.style.render_path(cr)
 
 
