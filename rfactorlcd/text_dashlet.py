@@ -23,7 +23,9 @@ class TextDashlet(rfactorlcd.Dashlet):
 
     def __init__(self, *args):
         super(TextDashlet, self).__init__(*args)
-        self.text_item = canvas.Text(0, 0, "N", canvas.Anchor.CENTER)
+        self.text_item = canvas.Text(0, 0, "N",
+                                     anchor=canvas.Anchor.S,
+                                     baseline=canvas.Baseline.MIDDLE)
 
     def reshape(self, x, y, w, h):
         self.text_item.x = w/2

@@ -25,6 +25,11 @@ class Alignment:
     LEFT = 1
     RIGHT = 2
 
+class Baseline:
+    ALPHABETIC = 0
+    TOP = 1
+    MIDDLE = 2
+    BOTTOM = 3
 
 class Anchor:
     CENTER = 0
@@ -132,7 +137,8 @@ class Group(Item):
         return child
 
     def add_circle(self, x, y, r, **style):
-        self.add_arc(x, y, r)
+        child = self.add_arc(x, y, r)
+        return child
 
     def add_arc(self, x, y, r, start=0, end=2*math.pi, **style):
         pass
@@ -249,13 +255,14 @@ class RoundedRectangle(Item):
 
 class Text(Item):
 
-    def __init__(self, x, y, text,  anchor=Anchor.NW, font_size=16, **style):
+    def __init__(self, x, y, text,  anchor=Anchor.SW, font_size=16, baseline=Baseline.ALPHABETIC, **style):
         super(Text, self).__init__(**style)
         self._text = text
         self.x = x
         self.y = y
         self.anchor = anchor
         self.font_size = font_size
+        self.baseline = baseline
 
     @property
     def text(self):
@@ -268,13 +275,21 @@ class Text(Item):
     def _render(self, cr):
         cr.set_font_size(self.font_size)
 
+        fascent, fdescent, fheight, fxadvance, fyadvance = cr.font_extents()
         x_bearing, y_bearing, width, height, x_advance, y_advance = cr.text_extents(self._text)
 
         x = self.x
         y = self.y
 
-        self.w = width
-        self.h = height
+        if self.baseline == Baseline.TOP:
+            y += fascent
+        elif self.baseline == Baseline.MIDDLE:
+            y += fascent - fheight/2.0
+        elif self.baseline == Baseline.BOTTOM:
+            y -= fdescent
+
+        self.w = x_advance
+        self.h = fheight
 
         if self.anchor & Anchor.W:
             x += 0
@@ -284,18 +299,17 @@ class Text(Item):
             x -= self.w/2
 
         if self.anchor & Anchor.N:
-            y += 0
+            y += self.h
         elif self.anchor & Anchor.S:
-            y -= self.h
+            y -= 0
         else:
-            y -= self.h/2
+            y += self.h/2.0
 
         if self.style.fill_color is None:
             cr.set_source_rgb(1, 1, 1)
         else:
             cr.set_source_rgb(*self.style.fill_color)
-        cr.move_to(x - x_bearing,
-                   y - y_bearing)
+        cr.move_to(x, y)
         cr.show_text(self._text)
 
 
