@@ -38,25 +38,34 @@ def format_time(v):
 
 
 class LaptimeDashlet(rfactorlcd.Dashlet):
+    """
+    current (last lap time is held for 15sec)
+    ahead
+    behind
+    best lap: time
+              driver
 
+    current
+    sector N: time
+    self split ...
+    best split: ...
+                driver
+    """
     def __init__(self, *args):
         super(LaptimeDashlet, self).__init__(*args)
         self.laptime = "0:00"
 
         self.group = canvas.Group()
 
-        self.t_x = self.w/2.0 + 160
-        self.t_y = 0
+        self.text_items = []
         def make_text(text):
-            left = self.group.add_text(self.t_x - 8, self.t_y,
-                                       text,
-                                       font_size=38,
-                                       anchor=canvas.Anchor.NE)
-            right = self.group.add_text(self.t_x + 8 + 250, self.t_y,
-                                        "{time}",
-                                        font_size=38,
-                                        anchor=canvas.Anchor.NE)
-            self.t_y += 40
+            left = self.group.add_text(text=text,
+                                       baseline=canvas.Baseline.TOP,
+                                       anchor=canvas.Anchor.SE)
+            right = self.group.add_text(text="{time}",
+                                        baseline=canvas.Baseline.TOP,
+                                        anchor=canvas.Anchor.SE)
+            self.text_items.append((left, right))
             return left, right
 
         self.gfx_current_label, self.gfx_current_time = make_text("Current:")
@@ -65,20 +74,18 @@ class LaptimeDashlet(rfactorlcd.Dashlet):
         self.gfx_best_label, self.gfx_best_time = make_text("Best:")
         self.gfx_best_driver_, self.gfx_best_driver = make_text("")
 
-        # current (last lap time is held for 15sec)
-        # ahead
-        # behind
-        # best lap: time
-        #           driver
-
-        # current
-        # sector N: time
-        # self split ...
-        # best split: ...
-        #             driver
+        self.reshape(self.x, self.y, self.w, self.h)
 
     def reshape(self, x, y, w, h):
-        pass
+        font_size = h / 5.0
+        t_y = 0
+        for left, right in self.text_items:
+            left.font_size = font_size
+            right.font_size = font_size
+            left.y = right.y = t_y
+            left.x = self.w / 2.0
+            right.x = self.w / 2.0 + 6.0 * font_size
+            t_y += font_size
 
     def update_state(self, state):
         if state.player is not None:
@@ -88,7 +95,7 @@ class LaptimeDashlet(rfactorlcd.Dashlet):
             self.gfx_current_time.text = "  %s" % format_time(current)
 
             behind_driver, behind_time = self.get_behind(state)
-            self.gfx_behind_label.text = behind_driver
+            self.gfx_behind_label.text = "%s:" % behind_driver
             self.gfx_behind_time.text = "-%s" % format_time(behind_time)
 
             ahead_driver, ahead_time = self.get_ahead(state)

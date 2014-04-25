@@ -121,7 +121,7 @@ class Group(Item):
     def add_child(self, child):
         self.children.append(child)
 
-    def add_text(self, x, y, text, anchor=Anchor.NW, font_size=None, **style):
+    def add_text(self, x=0, y=0, text="", anchor=Anchor.NW, font_size=None, **style):
         child = Text(x, y, text, anchor, font_size, **style)
         self.add_child(child)
         return child
