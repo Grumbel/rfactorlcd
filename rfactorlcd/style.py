@@ -19,12 +19,10 @@ import cairo
 
 
 class Style:
+
     @staticmethod
     def white_on_black():
         style = Style()
-        style.font = "Droid Sans Mono"
-        style.font_slant = cairo.FONT_SLANT_NORMAL
-        style.font_weight = cairo.FONT_WEIGHT_NORMAL
 
         style.background_color = (1.0, 1.0, 1.0)
         style.shadow_color = (0.5, 0.5, 0.5)
@@ -37,9 +35,6 @@ class Style:
     @staticmethod
     def black_on_white():
         style = Style()
-        style.font = "Droid Sans Mono"
-        style.font_slant = cairo.FONT_SLANT_NORMAL
-        style.font_weight = cairo.FONT_WEIGHT_NORMAL
 
         style.background_color = (0, 0, 0)
         style.shadow_color = (0.5, 0.5, 0.5)

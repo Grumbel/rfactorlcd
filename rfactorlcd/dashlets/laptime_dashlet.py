@@ -58,6 +58,7 @@ class LaptimeDashlet(rfactorlcd.Dashlet):
         self.group = canvas.Group()
 
         self.text_items = []
+
         def make_text(text):
             left = self.group.add_text(text=text,
                                        baseline=canvas.Baseline.TOP,

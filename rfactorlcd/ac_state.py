@@ -23,6 +23,7 @@ def perc2py(text):
     """Assetto Corsa strings end with a '%', not with a traditional '\0'"""
     return text.split(b'%', 1)[0]
 
+
 def utf16topy(asciz):
     return perc2py(asciz).decode("utf-16").encode("latin-1")
 
@@ -51,6 +52,7 @@ class HandshakeResponse:
         print >>sout, "track_config:", self.track_config
         return sout.getvalue()
 
+
 class RTLap:
     def __init__(self, rawdata):
         data = struct.unpack("<II100s50s2sI", rawdata)
@@ -74,6 +76,7 @@ class RTLap:
         print >>sout, "time:", self.time
         print >>sout, "unknown:", repr(self.unknown)
         return sout.getvalue()
+
 
 class RTCarInfo:
     def __init__(self, rawdata):

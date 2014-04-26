@@ -25,11 +25,13 @@ class Alignment:
     LEFT = 1
     RIGHT = 2
 
+
 class Baseline:
     ALPHABETIC = 0
     TOP = 1
     MIDDLE = 2
     BOTTOM = 3
+
 
 class Anchor:
     CENTER = 0
@@ -156,6 +158,7 @@ class Group(Item):
             child.render(cr)
         cr.restore()
 
+
 class Path(Item):
 
     def __init__(self, **style):
@@ -214,7 +217,7 @@ class Rectangle(Item):
         self.y = y
         self.w = w
         self.h = h
-        self.anchor=anchor
+        self.anchor = anchor
 
     def _render(self, cr):
         x = self.x

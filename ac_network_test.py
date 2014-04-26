@@ -5,6 +5,7 @@ import socket
 import struct
 from rfactorlcd.ac_state import HandshakeResponse, RTLap, RTCarInfo
 
+
 host = "duo"
 port = 9996
 
@@ -17,12 +18,19 @@ try:
     d, a = sock.recvfrom(4096)
     print HandshakeResponse(d)
 
+    msg_type = 1
+
     print "sending register..."
-    sock.sendto(struct.pack("<III", 1, 1, 1), (host, port))
+    sock.sendto(struct.pack("<III", 1, 1, msg_type), (host, port))
     while True:
         print "receiving..."
         d, a = sock.recvfrom(4096)
-        print RTCarInfo(d)
+        if msg_type == 1:
+            print RTCarInfo(d)
+        elif msg_type == 2:
+            print RTLap(d)
+        else:
+            raise RuntimeError("unknown msg_type: %d" % msg_type)
 
 finally:
     print "sending end connection:"

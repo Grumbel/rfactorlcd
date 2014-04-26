@@ -18,12 +18,12 @@
 
 
 import rfactorlcd
-import rfactorlcd.gfx as gfx
 import rfactorlcd.canvas as canvas
 
 
 def celsius(kelvin):
     return kelvin - 273.15
+
 
 def wear_color(v):
     return (max(0.0, min(1.0, v * -2.0 + 2.0)),
@@ -51,39 +51,39 @@ class CarDashlet(rfactorlcd.Dashlet):
         self.gfx_dent = [
             # front
             self.group.add_rectangle(30, -20, car_w - 60, 20,
-                                     stroke_color=(0,0,0),
+                                     stroke_color=(0, 0, 0),
                                      fill_color=self.dent_color(0)),
             # front/left
             self.group.add_rounded_rectangle(-20, -20, 60, 80,
                                              (32, 0, 0, 0),
-                                             stroke_color=(0,0,0),
+                                             stroke_color=(0, 0, 0),
                                              fill_color=self.dent_color(1)),
             # left side
             self.group.add_rectangle(-20, 60, 20, car_h - 120,
-                                     stroke_color=(0,0,0),
+                                     stroke_color=(0, 0, 0),
                                      fill_color=self.dent_color(2)),
             # back/left
             self.group.add_rounded_rectangle(-20, car_h-60, 60, 80,
                                              (0, 0, 0, 32),
-                                             stroke_color=(0,0,0),
+                                             stroke_color=(0, 0, 0),
                                              fill_color=self.dent_color(3)),
             # back
             self.group.add_rectangle(30, car_h, car_w - 60, 20,
-                                     stroke_color=(0,0,0),
+                                     stroke_color=(0, 0, 0),
                                      fill_color=self.dent_color(4)),
             # back/right
             self.group.add_rounded_rectangle(car_w-40, car_h-60, 60, 80,
                                              (0, 0, 32, 0),
-                                             stroke_color=(0,0,0),
+                                             stroke_color=(0, 0, 0),
                                              fill_color=self.dent_color(5)),
             # right side
             self.group.add_rectangle(car_w, 60, 20, car_h-120,
-                                     stroke_color=(0,0,0),
+                                     stroke_color=(0, 0, 0),
                                      fill_color=self.dent_color(6)),
             # front/right
             self.group.add_rounded_rectangle(car_w-40, -20, 60, 80,
                                              (0, 32, 0, 0),
-                                             stroke_color=(0,0,0),
+                                             stroke_color=(0, 0, 0),
                                              fill_color=self.dent_color(7)),
         ]
 
@@ -117,11 +117,11 @@ class CarDashlet(rfactorlcd.Dashlet):
                                                           wheel_w/3, wheel_h,
                                                           rounding[i],
                                                           stroke_color=None,
-                                                          fill_color=(1,1,1)),
+                                                          fill_color=(1, 1, 1)),
 
                               group.add_text(w_x + wheel_w/2 + offset*1.5 + (i - 1) * 32,
                                              w_y - (15 if wheel in (0, 1) else -wheel_h - 25),
-                                            "Temp",
+                                             "Temp",
                                              anchor=canvas.Anchor.S,
                                              font_size=16,
                                              fill_color=self.lcd_style.foreground_color)))
@@ -157,7 +157,7 @@ class CarDashlet(rfactorlcd.Dashlet):
                                        16, wheel_h,
                                        anchor=canvas.Anchor.SW,
                                        stroke_color=None,
-                                       fill_color=(1,0,0))
+                                       fill_color=(1, 0, 0))
 
             brake = group.add_text(w_x + wheel_w/2,
                                    w_y + wheel_h/2 + 8 + (60 if wheel in (0, 1) else -60),
@@ -182,7 +182,7 @@ class CarDashlet(rfactorlcd.Dashlet):
                             anchor=canvas.Anchor.S,
                             font_size=16)
         self.gfx_water = self.group.add_text(-100,
-                                             car_h/2 + 12,
+                                             car_h/2 + 8,
                                              "Temp",
                                              anchor=canvas.Anchor.S,
                                              font_size=16)
@@ -192,7 +192,7 @@ class CarDashlet(rfactorlcd.Dashlet):
                             anchor=canvas.Anchor.S,
                             font_size=16)
         self.gfx_oil = self.group.add_text(car_w + 100,
-                                           car_h/2 + 12,
+                                           car_h/2 + 8,
                                            "Temp",
                                            anchor=canvas.Anchor.S,
                                            font_size=16)
@@ -200,7 +200,7 @@ class CarDashlet(rfactorlcd.Dashlet):
         self.group.add_rectangle(car_w/2, car_h - 80 + 4, 80, 60,
                                  anchor=canvas.Anchor.CENTER,
                                  stroke_color=None,
-                                 fill_color=(0,0,0))
+                                 fill_color=(0, 0, 0))
         self.group.add_text(car_w/2, car_h - 80,
                             "Fuel",
                             anchor=canvas.Anchor.S,
@@ -209,7 +209,6 @@ class CarDashlet(rfactorlcd.Dashlet):
                                             "0L",
                                             anchor=canvas.Anchor.S,
                                             font_size=16)
-
 
     def reshape(self, x, y, w, h):
         scale = min(w, h) / 400.0

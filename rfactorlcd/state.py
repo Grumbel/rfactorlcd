@@ -112,6 +112,7 @@ class VehicleState(object):
 
         self.lap_times = LapTimes()
 
+
 class rFactorState(object):
 
     def __init__(self):
