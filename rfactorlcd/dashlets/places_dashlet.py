@@ -16,6 +16,7 @@
 
 
 import rfactorlcd
+import rfactorlcd.canvas as canvas
 
 
 class PlacesDashlet(rfactorlcd.Dashlet):
@@ -23,40 +24,52 @@ class PlacesDashlet(rfactorlcd.Dashlet):
     def __init__(self, *args):
         super(PlacesDashlet, self).__init__(*args)
 
-        self.vehicles = []
+        self.group = canvas.Group()
+        self.gfx_track = self.group.add_rectangle()
+        self.gfx_vehicles = []
         self.lap_dist = 1.0
 
     def update_state(self, state):
-        self.vehicles = state.vehicles
-        self.lap_dist = state.lap_dist
+        # create new graphics, if number of vehicles changed
+        if len(self.gfx_vehicles) != len(state.vehicles):
+            self.group = canvas.Group()
+            self.gfx_track = self.group.add_rectangle(fill_color=self.lcd_style.shadow_color,
+                                                      stroke_color=None)
+            self.gfx_vehicles = []
+            for veh in state.vehicles:
+                self.gfx_vehicles.append((self.group.add_rectangle(anchor=canvas.Anchor.CENTER, stroke_color=(0, 0, 0)),
+                                          self.group.add_text(anchor=canvas.Anchor.S, baseline=canvas.Baseline.MIDDLE,
+                                                              fill_color=(0, 0, 0))))
+
+        self.gfx_track.x = 0
+        self.gfx_track.y = self.h/2 - 2
+        self.gfx_track.w = self.w
+        self.gfx_track.h = 4
+
+        # update graphics
+        for i, veh in enumerate(state.vehicles):
+            p = veh.lap_dist / state.lap_dist
+
+            rect, text = self.gfx_vehicles[i]
+            text.x = rect.x = p * self.w
+            text.y = rect.y = self.h / 2
+            rect.w = self.h/2
+            rect.h = self.h/2
+
+            text.font_size = self.h / 2.5
+            text.text = str(veh.place)
+
+            if veh.is_player:
+                rect.style.fill_color = (0, 1.0, 0)
+            elif veh.place == 1:
+                rect.style.fill_color = (1.0, 1.0, 1.0)
+            else:
+                rect.style.fill_color = self.lcd_style.highlight_color
+
         self.queue_draw()
 
     def draw(self, cr):
-        cr.set_line_width(2.0)
-        cr.move_to(0, self.h/2)
-        cr.line_to(self.w, self.h/2)
-        cr.set_source_rgb(*self.lcd_style.shadow_color)
-        cr.stroke()
-
-        for vehicle in self.vehicles:
-            p = vehicle.lap_dist / self.lap_dist
-            p = p % 1.0
-
-            cr.rectangle(p * self.w - 8,
-                         self.h / 2 - 8,
-                         16, 16)
-
-            if vehicle.is_player:
-                cr.set_source_rgb(0, 1.0, 0)
-            elif vehicle.place == 1:
-                cr.set_source_rgb(1.0, 1.0, 1.0)
-            else:
-                cr.set_source_rgb(*self.lcd_style.highlight_color)
-            cr.fill_preserve()
-
-            cr.set_line_width(1.0)
-            cr.set_source_rgb(*self.lcd_style.highlight_dim_color)
-            cr.stroke()
+        self.group.render(cr)
 
 
 # EOF #

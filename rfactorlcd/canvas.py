@@ -121,12 +121,12 @@ class Group(Item):
     def add_child(self, child):
         self.children.append(child)
 
-    def add_text(self, x=0, y=0, text="", anchor=Anchor.NW, font_size=None, **style):
+    def add_text(self, x=0, y=0, text="", anchor=Anchor.NW, font_size=16.0, **style):
         child = Text(x, y, text, anchor, font_size, **style)
         self.add_child(child)
         return child
 
-    def add_rectangle(self, x, y, w, h, **style):
+    def add_rectangle(self, x=0, y=0, w=0, h=0, **style):
         child = Rectangle(x, y, w, h, **style)
         self.add_child(child)
         return child
