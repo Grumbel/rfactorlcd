@@ -18,6 +18,43 @@
 import rfactorlcd
 
 
+class LapTime:
+    def __init__(self):
+        self.lap = 0
+        self.sector1 = 0
+        self.sector2 = 0
+        self.sector3 = 0
+
+    @property
+    def total(self):
+        return self.sector1 + self.sector2 + self.sector3
+
+
+class LapTimes(object):
+    """Lap time history for a vehicle in a single session"""
+
+    def __init__(self):
+        self.laps = []
+        self.current_lap = 0
+
+    def update(self, state):
+        """Update current LapTime history with info from VehicleState"""
+        if self.current_lap != state.total_laps:
+            lap_time = LapTime()
+            lap_time.lap = state.total_laps
+            lap_time.sector1 = state.last_sector1
+            lap_time.sector2 = state.last_sector2 - state.last_sector1
+            lap_time.sector3 = state.last_lap_time - state.last_sector2
+            self.laps.append(lap_time)
+
+            self.current_lap = state.total_laps
+
+            print "---------------------------"
+            for times in self.laps:
+                print times.lap, times.sector1, times.sector2, times.sector3
+            print "---------------------------"
+
+
 class WheelState(object):
 
     def __init__(self):
@@ -73,10 +110,13 @@ class VehicleState(object):
 
         self.lap_start_et = 0.0
 
+        self.lap_times = LapTimes()
 
 class rFactorState(object):
 
     def __init__(self):
+        self.session_id = 0
+
         # telemetry defaults
         self.lap_number = 0
         self.lap_start_et = 0.0
@@ -144,12 +184,15 @@ class rFactorState(object):
 
     @property
     def best_lap_time(self):
-        best = self.vehicles[0]
-        for veh in self.vehicles[1:]:
-            if veh.best_lap_time < best:
-                best = veh.best_lap_time
-                self.best_lap_driver = veh.driver_name  # FIXME: hack
-        return best
+        if self.vehicles != []:
+            best = self.vehicles[0]
+            for veh in self.vehicles[1:]:
+                if veh.best_lap_time < best:
+                    best = veh.best_lap_time
+                    self.best_lap_driver = veh.driver_name  # FIXME: hack
+            return best
+        else:
+            return 0
 
     def on_telemetry(self, msg):
         self.delta_time = msg.read_float()
@@ -217,10 +260,9 @@ class rFactorState(object):
     def on_vehicle(self, msg):
         self.num_vehicles = msg.read_int()
 
-        if self.num_vehicles < len(self.vehicles):
-            self.vehicles = self.vehicles[:self.num_vehicles]
-        elif self.num_vehicles > len(self.vehicles):
-            for i in range(self.num_vehicles - len(self.vehicles)):
+        if self.num_vehicles != len(self.vehicles):
+            self.vehicles = []
+            for i in range(self.num_vehicles):
                 self.vehicles.append(VehicleState())
 
         for i in range(0, self.num_vehicles):
@@ -272,6 +314,8 @@ class rFactorState(object):
             if self.vehicles[i].is_player:
                 self.player = self.vehicles[i]
 
+            self.vehicles[i].lap_times.update(self.vehicles[i])
+
     def on_score(self, msg):
         self.game_phase = msg.read_char()
         self.yellow_flag_state = msg.read_char()
@@ -305,7 +349,8 @@ class rFactorState(object):
         pass
 
     def on_start_session(self, msg):
-        pass
+        self.session_id += 1
+        self.vehicles = []
 
     def on_end_session(self, msg):
         pass
