@@ -54,6 +54,7 @@ class Style:
         self.highlight_color = (1.0, 0, 0)
         self.highlight_dim_color = (0.5, 0, 0)
         self.foreground_color = (0, 0, 0)
+        self.select_color = (0.25, 0.5, 1)
 
 
 # EOF #

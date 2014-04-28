@@ -18,16 +18,9 @@
 import cairo
 import gtk
 import random
+import logging
 
 import rfactorlcd
-
-
-class DragMode:
-    Move = 0
-    ResizeLeft = 1 << 0
-    ResizeRight = 1 << 1
-    ResizeTop = 1 << 2
-    ResizeBottom = 1 << 3
 
 
 class LCDWidget(gtk.DrawingArea):
@@ -41,9 +34,7 @@ class LCDWidget(gtk.DrawingArea):
         self.workspace = rfactorlcd.Workspace()
         self.workspace.set_lcd_style(self.lcd_style)
 
-        self.active_dashlet = None
-        self.drag_dashlet = None
-        self.drag_start = None
+        self.dashlet_selection = rfactorlcd.DashletSelection(self.lcd_style, self.workspace)
 
         self.dashlet_insert_pos = None
 
@@ -84,77 +75,42 @@ class LCDWidget(gtk.DrawingArea):
 
     def on_key_press(self, widget, event):
         if event.keyval == gtk.keysyms.Delete:
-            self.workspace.remove_dashlet(self.active_dashlet)
-            self.active_dashlet = None
+            for dashlet in self.dashlet_selection.dashlets:
+                self.workspace.remove_dashlet(dashlet)
+            self.dashlet_selection.clear()
             self.queue_draw()
 
         elif event.keyval == gtk.keysyms.Page_Up:
-            self.workspace.raise_dashlet(self.active_dashlet)
+            # FIXME: this is not the proper way to raise a group
+            for dashlet in self.dashlet_selection.dashlets:
+                self.workspace.raise_dashlet(dashlet)
             self.queue_draw()
 
         elif event.keyval == gtk.keysyms.Page_Down:
-            self.workspace.lower_dashlet(self.active_dashlet)
+            # FIXME: this is not the proper way to lower a group
+            for dashlet in self.dashlet_selection.dashlets:
+                self.workspace.lower_dashlet(dashlet)
             self.queue_draw()
 
     def on_button_press(self, widget, event):
-        # print "press", event.x, event.y, event.button
+        logging.info("LCDWidget button press %s %s %s", event.x, event.y, event.button)
         if event.button == 1:
-            self.drag_dashlet = self.active_dashlet
-            if self.drag_dashlet:
-                self.drag_dashlet_origin = (self.drag_dashlet.x, self.drag_dashlet.y,
-                                            self.drag_dashlet.w, self.drag_dashlet.h)
+            self.dashlet_selection.on_button_press(event)
+            self.queue_draw()
 
-                self.drag_mode = DragMode.Move
-                border = 20
-                if self.drag_dashlet.x + border > event.x:
-                    self.drag_mode |= DragMode.ResizeLeft
-                elif self.drag_dashlet.x2 - border < event.x:
-                    self.drag_mode |= DragMode.ResizeRight
-
-                if self.drag_dashlet.y + border > event.y:
-                    self.drag_mode |= DragMode.ResizeTop
-                elif self.drag_dashlet.y2 - border < event.y:
-                    self.drag_mode |= DragMode.ResizeBottom
-
-                self.drag_start = (event.x, event.y)
         elif event.button == 3:
             self.dashlet_insert_pos = (event.x, event.y)
             self.menu.popup(None, None, None, event.button, event.time)
 
     def on_button_release(self, widget, event):
-        print "release", event.x, event.y, event.button
+        logging.info("LCDWidget button release %s %s %s", event.x, event.y, event.button)
         if event.button == 1:
-            self.drag_dashlet = None
+            self.dashlet_selection.on_button_release(event)
+            self.queue_draw()
 
     def on_motion_notify(self, widget, event):
-        if self.drag_dashlet is not None:
-            x = event.x - self.drag_start[0]
-            y = event.y - self.drag_start[1]
-
-            if self.drag_mode == DragMode.Move:
-                self.drag_dashlet.set_geometry(self.drag_dashlet_origin[0] + x,
-                                               self.drag_dashlet_origin[1] + y)
-
-            if self.drag_mode & DragMode.ResizeLeft:
-                self.drag_dashlet.set_geometry(x=self.drag_dashlet_origin[0] + x,
-                                               w=self.drag_dashlet_origin[2] - x)
-
-            if self.drag_mode & DragMode.ResizeRight:
-                self.drag_dashlet.set_geometry(w=self.drag_dashlet_origin[2] + x)
-
-            if self.drag_mode & DragMode.ResizeTop:
-                self.drag_dashlet.set_geometry(y=self.drag_dashlet_origin[1] + y,
-                                               h=self.drag_dashlet_origin[3] - y)
-
-            if self.drag_mode & DragMode.ResizeBottom:
-                self.drag_dashlet.set_geometry(h=self.drag_dashlet_origin[3] + y)
-
-            self.queue_draw()
-        else:
-            active_dashlet = self.workspace.find_dashlet_at(event.x, event.y)
-            if active_dashlet != self.active_dashlet:
-                self.active_dashlet = active_dashlet
-                self.queue_draw()
+        self.dashlet_selection.on_move(event)
+        self.queue_draw()
 
     def set_lcd_style(self, style):
         self.lcd_style = style
@@ -186,26 +142,7 @@ class LCDWidget(gtk.DrawingArea):
 
             self.workspace.draw(cr)
 
-            if self.active_dashlet:
-                border = 20
-                cr.set_line_width(4.0)
-                cr.set_source_rgb(*self.lcd_style.shadow_color)
-                cr.rectangle(self.active_dashlet.x, self.active_dashlet.y,
-                             border, self.active_dashlet.h)
-                cr.rectangle(self.active_dashlet.x + self.active_dashlet.w - border, self.active_dashlet.y,
-                             border, self.active_dashlet.h)
-
-                cr.rectangle(self.active_dashlet.x, self.active_dashlet.y,
-                             self.active_dashlet.w, border)
-                cr.rectangle(self.active_dashlet.x, self.active_dashlet.y + self.active_dashlet.h - border,
-                             self.active_dashlet.w, border)
-                cr.stroke()
-
-                cr.set_line_width(6.0)
-                cr.set_source_rgb(*self.lcd_style.highlight_color)
-                cr.rectangle(self.active_dashlet.x, self.active_dashlet.y,
-                             self.active_dashlet.w, self.active_dashlet.h)
-                cr.stroke()
+            self.dashlet_selection.render(cr)
 
     def update_state(self, tag, payload):
         self.rf_state.dispatch_message(tag, payload)
