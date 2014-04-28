@@ -15,12 +15,13 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
+import logging
+
 import rfactorlcd
 
 
 class LapTime:
     def __init__(self):
-        self.lap = 0
         self.sector1 = 0
         self.sector2 = 0
         self.sector3 = 0
@@ -34,25 +35,54 @@ class LapTimes(object):
     """Lap time history for a vehicle in a single session"""
 
     def __init__(self):
-        self.laps = []
-        self.current_lap = 0
+        self.laps = {}
+        self.current_sector = None
+
+    @property
+    def best_time(self):
+        if self.laps == []:
+            return 0
+        else:
+            return min([lap.total for lap in self.laps])
+
+    def last_lap(self):
+        last_lap = -1
+        last_times = None
+        for lap, times in self.laps.items():
+            if lap > last_lap:
+                last_lap = lap
+                last_times = times
+        return last_times
 
     def update(self, state):
         """Update current LapTime history with info from VehicleState"""
-        if self.current_lap != state.total_laps:
-            lap_time = LapTime()
-            lap_time.lap = state.total_laps
-            lap_time.sector1 = state.last_sector1
-            lap_time.sector2 = state.last_sector2 - state.last_sector1
-            lap_time.sector3 = state.last_lap_time - state.last_sector2
-            self.laps.append(lap_time)
 
-            self.current_lap = state.total_laps
+        if state.sector == 0 and state.total_laps == 0:
+            pass
 
-            print "---------------------------"
-            for times in self.laps:
-                print times.lap, times.sector1, times.sector2, times.sector3
-            print "---------------------------"
+        elif self.current_sector != state.sector:
+            self.current_sector = state.sector
+
+            if state.sector == 0:
+                lap = state.total_laps - 1
+            else:
+                lap = state.total_laps
+
+            if lap in self.laps:
+                lap_time = self.laps[lap]
+            else:
+                lap_time = LapTime()
+                self.laps[lap] = lap_time
+
+            # set the sector time in the LapTime object
+            if state.sector == 1:
+                lap_time.sector1 = state.cur_sector1
+            elif state.sector == 2:
+                lap_time.sector2 = state.cur_sector2 - state.cur_sector1
+            elif state.sector == 0:
+                lap_time.sector3 = state.last_lap_time - state.cur_sector2
+            else:
+                logging.error("unknown sector: %d" % state.sector)
 
 
 class WheelState(object):
@@ -275,7 +305,9 @@ class rFactorState(object):
             self.vehicles[i].vehicle_class = msg.read_string()
             self.vehicles[i].total_laps = msg.read_short()
 
-            self.vehicles[i].sector = msg.read_char()
+            # rFactor numbers sectors 1, 2, 0, convert them to 0, 1, 2
+            self.vehicles[i].sector = (msg.read_char() + 2) % 3
+
             self.vehicles[i].finish_status = msg.read_char()
             self.vehicles[i].lap_dist = msg.read_float()
             self.vehicles[i].path_lateral = msg.read_float()
@@ -291,9 +323,12 @@ class rFactorState(object):
             self.vehicles[i].best_sector1 = msg.read_float()
             self.vehicles[i].best_sector2 = msg.read_float()
             self.vehicles[i].best_lap_time = msg.read_float()
+
+            # these times are only updated going into a new lap
             self.vehicles[i].last_sector1 = msg.read_float()
             self.vehicles[i].last_sector2 = msg.read_float()
             self.vehicles[i].last_lap_time = msg.read_float()
+
             self.vehicles[i].cur_sector1 = msg.read_float()
             self.vehicles[i].cur_sector2 = msg.read_float()
 
@@ -352,9 +387,10 @@ class rFactorState(object):
     def on_start_session(self, msg):
         self.session_id += 1
         self.vehicles = []
+        logging.info("on_start_session")
 
     def on_end_session(self, msg):
-        pass
+        logging.info("on_end_session")
 
     def dispatch_message(self, tag, payload):
         msg = rfactorlcd.BinaryDecoder(payload)
