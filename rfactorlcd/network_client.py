@@ -68,7 +68,7 @@ class NetworkClient:
                 while not self._shutdown:
                     self.update()
             except socket.error as err:
-                logging.exception("couldn't connect, trying reconnect: %s:%s %s", self.host, self.port, err)
+                logging.info("couldn't connect, trying reconnect: %s:%s %s", self.host, self.port, err)
             except ConnectionClosed as err:
                 logging.error("connection closed by server")
             finally:
