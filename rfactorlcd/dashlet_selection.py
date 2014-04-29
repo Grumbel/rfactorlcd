@@ -20,10 +20,6 @@ import gtk
 import rfactorlcd
 
 
-def manhatten_distance(x1, y1, x2, y2):
-    return abs(x2 - x1) + abs(y2 - y1)
-
-
 class DragMode:
     Move = 0
     ResizeLeft = 1 << 0
@@ -34,23 +30,29 @@ class DragMode:
 
 class ControlPoint:
 
-    def __init__(self, x, y, mode):
+    def __init__(self, x, y, w, h, mode):
         self.x = x
         self.y = y
+        self.w = w
+        self.h = h
         self.mode = mode
 
     def render(self, cr):
-        boxsize = 16
-        cr.rectangle(self.x - boxsize/2,
-                     self.y - boxsize/2,
-                     boxsize, boxsize)
+        cr.rectangle(self.x - self.w/2,
+                     self.y - self.h/2,
+                     self.w, self.h)
 
         cr.set_line_width(4.0)
         cr.set_source_rgb(1, 0, 0)
-        cr.fill()
+        cr.fill_preserve()
+
+        cr.set_source_rgb(0.75, 0, 0)
+        cr.set_line_width(1.0)
+        cr.stroke()
 
     def contains(self, x, y):
-        return manhatten_distance(self.x, self.y, x, y) <= 8
+        return (abs(self.x - x) <= self.w and
+                abs(self.y - y) <= self.h)
 
 
 class DashletSelection(object):
@@ -91,16 +93,16 @@ class DashletSelection(object):
         bb = self.bounding_box = self.calc_bounding_box()
 
         self.control_points = [
-            ControlPoint(bb.x1, bb.y1, DragMode.ResizeLeft | DragMode.ResizeTop),
-            ControlPoint(bb.x1, bb.cy, DragMode.ResizeLeft),
-            ControlPoint(bb.x1, bb.y2, DragMode.ResizeLeft | DragMode.ResizeBottom),
+            ControlPoint(bb.x1 - 8, bb.y1 - 8, 16, 16, DragMode.ResizeLeft | DragMode.ResizeTop),
+            ControlPoint(bb.x1 - 8, bb.cy, 16, 16, DragMode.ResizeLeft),
+            ControlPoint(bb.x1 - 8, bb.y2 + 8, 16, 16, DragMode.ResizeLeft | DragMode.ResizeBottom),
 
-            ControlPoint(bb.cx, bb.y1, DragMode.ResizeTop),
-            ControlPoint(bb.cx, bb.y2, DragMode.ResizeBottom),
+            ControlPoint(bb.cx, bb.y1 - 8, 16, 16, DragMode.ResizeTop),
+            ControlPoint(bb.cx, bb.y2 + 8, 16, 16, DragMode.ResizeBottom),
 
-            ControlPoint(bb.x2, bb.y1, DragMode.ResizeRight | DragMode.ResizeTop),
-            ControlPoint(bb.x2, bb.cy, DragMode.ResizeRight),
-            ControlPoint(bb.x2, bb.y2, DragMode.ResizeRight | DragMode.ResizeBottom),
+            ControlPoint(bb.x2 + 8, bb.y1 - 8, 16, 16, DragMode.ResizeRight | DragMode.ResizeTop),
+            ControlPoint(bb.x2 + 8, bb.cy, 16, 16, DragMode.ResizeRight),
+            ControlPoint(bb.x2 + 8, bb.y2 + 8, 16, 16, DragMode.ResizeRight | DragMode.ResizeBottom),
         ]
 
     def contains(self, dashlet):
@@ -220,6 +222,7 @@ class DashletSelection(object):
                 cr.rectangle(self.bounding_box.x, self.bounding_box.y,
                              self.bounding_box.w, self.bounding_box.h)
                 cr.stroke()
+                cr.set_dash([])
 
                 for cp in self.control_points:
                     cp.render(cr)
