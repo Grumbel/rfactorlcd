@@ -141,10 +141,10 @@ class RPMDashlet(rfactorlcd.Dashlet):
             x = math.cos(rad)
             y = math.sin(rad)
 
-            cr.move_to(x * self.inner_r * 1.05,
-                       y * self.inner_r * 1.05)
-            cr.line_to(x * self.outer_r * 0.95,
-                       y * self.outer_r * 0.95)
+            cr.move_to(x * self.inner_r,
+                       y * self.inner_r)
+            cr.line_to(x * (self.inner_r  + (self.outer_r - self.inner_r) * 0.75),
+                       y * (self.inner_r  + (self.outer_r - self.inner_r) * 0.75))
             cr.stroke()
 
         # draw max_rpm needle
