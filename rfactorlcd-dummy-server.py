@@ -72,7 +72,7 @@ def main():
                         help='IP to bind to')
     parser.add_argument('PORT', type=int, nargs='?', default=4580,
                         help='PORT to listen on')
-    parser.add_argument("-f", "--file", type=str, default="logs/race.log",
+    parser.add_argument("-f", "--file", type=str, default="logs/race-solo.log",
                         help="FILE to load and send out")
     args = parser.parse_args()
 
