@@ -213,10 +213,12 @@ class rFactorState(object):
         self.speed = 0
         self.laptime = "1:23:45"
 
+        self.best_lap_driver = ""
+
     @property
     def best_lap_time(self):
         if self.vehicles != []:
-            best = self.vehicles[0]
+            best = self.vehicles[0].best_lap_time
             for veh in self.vehicles[1:]:
                 if veh.best_lap_time < best:
                     best = veh.best_lap_time
