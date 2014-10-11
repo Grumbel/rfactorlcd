@@ -23,7 +23,7 @@ class Rect:
     def copy(rect):
         return Rect(rect.x,
                     rect.y,
-                    rect.w, 
+                    rect.w,
                     rect.h)
 
     def __init__(self, x, y, w, h):

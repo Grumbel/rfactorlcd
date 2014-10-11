@@ -38,7 +38,7 @@ class LCDWidget(gtk.DrawingArea):
 
         self.dashlet_insert_pos = None
 
-        #self.set_events(gtk.MOTION_NOTIFY)
+        # self.set_events(gtk.MOTION_NOTIFY)
 
         self.set_events(gtk.gdk.EXPOSURE_MASK
                         | gtk.gdk.LEAVE_NOTIFY_MASK

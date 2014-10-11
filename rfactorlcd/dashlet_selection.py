@@ -162,8 +162,8 @@ class DashletSelection(object):
                     self.control_points = []
                     self.drag_start = (event.x, event.y)
                     self.drag_mode = DragMode.Move
-                    self.dashlet_origins = [(dashlet.x, dashlet.y, dashlet.w, dashlet.h)
-                                            for dashlet in self.dashlets]
+                    self.dashlet_origins = [(d.x, d.y, d.w, d.h)
+                                            for d in self.dashlets]
 
     def on_button_release(self, event):
         self.drag_start = None
@@ -199,7 +199,7 @@ class DashletSelection(object):
 
                     scale_x = rect.w / self.bounding_box.w
                     scale_y = rect.h / self.bounding_box.h
-                        
+
                     dashlet.set_geometry(x=rect.x + (origins[0] - self.bounding_box.x) * scale_x,
                                          y=rect.y + (origins[1] - self.bounding_box.y) * scale_y,
                                          w=origins[2] * scale_x,
