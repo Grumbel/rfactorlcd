@@ -28,7 +28,7 @@ class rFactorLCDTestCase(unittest.TestCase):
 
     def test_state_parsing(self):
         state = rfactorlcd.rFactorState()
-        with open(os.path.join(os.path.dirname(__file__), "../raw.log"), "rb") as fin:
+        with open(os.path.join(os.path.dirname(__file__), "../logs/race-solo.log"), "rb") as fin:
             while True:
                 data = fin.read(8)
                 if data == "":
