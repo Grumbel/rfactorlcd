@@ -39,11 +39,15 @@ def format_time(v):
 
 class LaptimeDashlet(rfactorlcd.Dashlet):
     """
+    Race Mode:
+
     current (last lap time is held for 15sec)
     ahead
     behind
     best lap: time
               driver
+
+    Practice/Hotlap Mode:
 
     current
     sector N: time
